@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fetchTelegramPreview } from "../src/api/telegram";
 import type { EventsPageData, TelegramPost } from "../src/lib/events";
@@ -7,19 +7,32 @@ const projectRoot = process.cwd();
 const eventsFile = resolve(projectRoot, "public/events.json");
 const imageDirectory = resolve(projectRoot, "public/images/events");
 
+async function findExistingImage(post: TelegramPost) {
+  for (const extension of ["jpg", "png", "webp"]) {
+    const fileName = `telegram-${post.telegramMessageId}.${extension}`;
+    try {
+      await access(resolve(imageDirectory, fileName));
+      return `./images/events/${fileName}`;
+    } catch {
+      // Try the next supported extension.
+    }
+  }
+  return null;
+}
+
 async function downloadPostImage(post: TelegramPost) {
   if (!post.imageUrl || !post.imageUrl.startsWith("http")) return post.imageUrl ?? null;
 
   try {
     const response = await fetch(post.imageUrl, { headers: { "User-Agent": "4ROOM-events-export/1.0" } });
-    if (!response.ok) return post.imageUrl;
+    if (!response.ok) return (await findExistingImage(post)) ?? post.imageUrl;
     const contentType = response.headers.get("content-type") ?? "image/jpeg";
     const extension = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
     const fileName = `telegram-${post.telegramMessageId}.${extension}`;
     await writeFile(resolve(imageDirectory, fileName), Buffer.from(await response.arrayBuffer()));
     return `./images/events/${fileName}`;
   } catch {
-    return post.imageUrl;
+    return (await findExistingImage(post)) ?? post.imageUrl;
   }
 }
 
