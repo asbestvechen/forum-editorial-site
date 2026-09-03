@@ -263,7 +263,7 @@ export async function publishTelegramExport(input: { connectionToken: string; ow
     ],
   });
   const commit = await request<GitObject>(`${githubBase}/git/commits`, "POST", {
-    message: "Publish Telegram gallery feed",
+    message: "Remove technical status from events feed",
     tree: tree.sha,
     parents: [ref.object.sha],
   });

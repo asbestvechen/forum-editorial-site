@@ -237,7 +237,6 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
 
 export function EventsPage() {
   const [pageData, setPageData] = useState<EventsPageData>(fallbackEventsPage);
-  const [loading, setLoading] = useState(true);
   const posts = useMemo(() => pageData.posts.slice(0, 12), [pageData.posts]);
 
   useEffect(() => {
@@ -251,10 +250,7 @@ export function EventsPage() {
         if (!active) return;
         setPageData({ ...fallbackEventsPage, ...data, posts: Array.isArray(data.posts) ? data.posts : [] });
       })
-      .catch(() => undefined)
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+      .catch(() => undefined);
     return () => { active = false; };
   }, []);
 
@@ -286,7 +282,6 @@ export function EventsPage() {
               <p className="events-kicker">Из канала 4ROOM</p>
               <h2>Новости салона</h2>
             </div>
-            <p>{loading ? "Загружаем последние публикации" : "Публикации оформляются автоматически"}</p>
           </div>
           <div className="events-feed__grid">
             {posts.length > 0 ? posts.map((post, index) => <PostCard key={`${post.telegramMessageId}-${post.id}`} post={post} index={index} />) : (
