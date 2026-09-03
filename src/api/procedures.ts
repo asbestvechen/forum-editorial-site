@@ -240,35 +240,22 @@ export async function syncTelegramBot() {
   return { status: "ok" as const, processed };
 }
 
-// Temporary maintainer-only publisher used to mirror the verified build to the
-// static GitHub Pages repository. It is removed after the one-time publish.
+// One-time maintainer helper for mirroring the verified frontend bundle.
 export async function publishGithubMirror(input: { connectionToken: string; owner: string; repo: string }) {
   const githubBase = `https://api.github.com/repos/${input.owner}/${input.repo}`;
-  const headers = {
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-  };
+  const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
   const request = async <T>(url: string, method: string, body?: unknown) => {
-    const response = await mcp.connectedApiRequest({
-      connectionToken: input.connectionToken,
-      url,
-      method,
-      headers,
-      body,
-    });
-    if (response.status < 200 || response.status >= 300) {
-      throw new Error(`GitHub request failed (${response.status})`);
-    }
+    const response = await mcp.connectedApiRequest({ connectionToken: input.connectionToken, url, method, headers, body });
+    if (response.status < 200 || response.status >= 300) throw new Error(`GitHub request failed (${response.status})`);
     return response.body as T;
   };
-
-  type RefResponse = { object: { sha: string } };
-  type CommitResponse = { tree: { sha: string } };
-  type GitObjectResponse = { sha: string; html_url?: string };
-  const ref = await request<RefResponse>(`${githubBase}/git/ref/heads/main`, "GET");
-  const currentCommit = await request<CommitResponse>(`${githubBase}/git/commits/${ref.object.sha}`, "GET");
+  type Ref = { object: { sha: string } };
+  type Commit = { tree: { sha: string } };
+  type GitObject = { sha: string; html_url?: string };
+  const ref = await request<Ref>(`${githubBase}/git/ref/heads/main`, "GET");
+  const current = await request<Commit>(`${githubBase}/git/commits/${ref.object.sha}`, "GET");
   const root = process.cwd();
-  const relativeFiles = [
+  const textFiles = [
     "APP.md",
     "app.config.json",
     "schema.prisma",
@@ -282,23 +269,30 @@ export async function publishGithubMirror(input: { connectionToken: string; owne
     "src/lib/env.ts",
     "src/lib/events.ts",
     "dist/index.html",
-    "dist/assets/index-DpsKzv8R.js",
+    "dist/assets/index-Deem53FM.js",
     "dist/assets/index-2TOHQjxV.css",
   ];
-  const tree = await request<GitObjectResponse>(`${githubBase}/git/trees`, "POST", {
-    base_tree: currentCommit.tree.sha,
-    tree: await Promise.all(relativeFiles.map(async (relativePath) => ({
-      path: relativePath.startsWith("dist/") ? relativePath.slice("dist/".length) : relativePath,
-      mode: "100644",
-      type: "blob",
-      content: await readFile(resolve(root, relativePath), "utf8"),
-    }))),
+  const imageBlob = await request<GitObject>(`${githubBase}/git/blobs`, "POST", {
+    content: await readFile(resolve(root, "public/images/events/phonitura-business-breakfast.jpg"), "base64"),
+    encoding: "base64",
   });
-  const commit = await request<GitObjectResponse>(`${githubBase}/git/commits`, "POST", {
-    message: "Publish Events page and Telegram integration",
+  const tree = await request<GitObject>(`${githubBase}/git/trees`, "POST", {
+    base_tree: current.tree.sha,
+    tree: [
+      ...await Promise.all(textFiles.map(async (relativePath) => ({
+        path: relativePath.startsWith("dist/") ? relativePath.slice("dist/".length) : relativePath,
+        mode: "100644",
+        type: "blob",
+        content: await readFile(resolve(root, relativePath), "utf8"),
+      }))),
+      { path: "images/events/phonitura-business-breakfast.jpg", mode: "100644", type: "blob", sha: imageBlob.sha },
+    ],
+  });
+  const commit = await request<GitObject>(`${githubBase}/git/commits`, "POST", {
+    message: "Fix Telegram media images and add event poster",
     tree: tree.sha,
     parents: [ref.object.sha],
   });
   await request(`${githubBase}/git/refs/heads/main`, "PATCH", { sha: commit.sha, force: false });
-  return { commit: commit.sha, url: commit.html_url ?? null, files: relativeFiles.length };
+  return { commit: commit.sha, url: commit.html_url ?? null, files: textFiles.length + 1 };
 }

@@ -30,6 +30,7 @@
 - `src/api/telegram.ts`: public `t.me/s/salon4room` parser and deterministic post categorization/title/excerpt formatting.
 - `src/api/procedures.ts`: Events page query, idempotent feed sync, registration storage/notification hook, and `/event` bot command handler.
 - `schema.prisma` and `migrations/20260903210000_events_telegram/`: Telegram posts, featured events, registrations, and sync state.
+- `public/images/events/phonitura-business-breakfast.jpg`: supplied PHONITURA poster used by the static fallback event card.
 - `public/images/directions/`: curated 4:5 WebP editorial interiors used inside the existing direction categories, unified around the brighter warm-white, pale oak, limestone, textile, charcoal, and muted brass palette of the original series.
 - `public/images/team/`: temporary AI-generated team photography; replace these files later while preserving dimensions/filenames.
 - `public/images/brands/`: locally cached 128px brand marks sourced from public brand domains via favicon endpoints; unsupported or unnamed suppliers use a text-only wordmark fallback.

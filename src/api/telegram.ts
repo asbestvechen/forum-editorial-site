@@ -71,8 +71,11 @@ function parseMessageBlock(block: string): TelegramPost | null {
   if (!text) return null;
 
   const category = classifyPost(text);
-  const imageMatch = block.match(/background-image:url\(['"]?([^'")]+)|<img[^>]+src="([^"]+)"/i);
-  const imageUrl = imageMatch?.[1] ?? imageMatch?.[2] ?? null;
+  // Telegram uses the first <img> for the channel avatar in every message.
+  // Prefer the media background image so feed cards do not repeat that avatar.
+  const mediaMatch = block.match(/background-image:url\(['"]?([^'")]+)/i);
+  const imageMatch = block.match(/<img[^>]+src="([^"]+)"/i);
+  const imageUrl = mediaMatch?.[1] ?? imageMatch?.[1] ?? null;
 
   return {
     id: `telegram-${messageId}`,
