@@ -1200,10 +1200,19 @@ html.lenis.lenis-stopped {
   .editorial-direction-grid {
     touch-action: pan-y;
     cursor: grab;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0.25rem;
+    -webkit-overflow-scrolling: touch;
   }
 
   .editorial-direction-grid:active {
     cursor: grabbing;
+  }
+
+  .editorial-direction-card {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .editorial-hero-section {
