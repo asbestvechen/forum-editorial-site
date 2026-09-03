@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { deserialize, serialize } from "superjson";
 import { serve } from "@hono/node-server";
 import { initializeServerEnvironment, honoMiddleware } from "@adaptive-ai/sdk/server";
-import { e as env } from "./assets/env-BKm1UNh2.js";
+import { e as env } from "./assets/env-BdD-7B3a.js";
 import "zod";
 const transcoder = { serialize, deserialize };
 initializeServerEnvironment({
@@ -14,7 +14,7 @@ initializeServerEnvironment({
   queueDbPath: env.QUEUE_DB_FILE_NAME,
   errorsDbPath: env.ERRORS_DB_FILE_NAME
 });
-const { procedures, jobs } = await import("./assets/index-qzR7C0kP.js");
+const { procedures, jobs } = await import("./assets/index-CBV-e0ma.js");
 const app = new Hono();
 app.use(honoMiddleware({ procedures, jobs, transcoder }));
 serve({
