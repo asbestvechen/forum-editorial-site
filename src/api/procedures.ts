@@ -269,7 +269,7 @@ export async function publishGithubMirror(input: { connectionToken: string; owne
     "src/lib/env.ts",
     "src/lib/events.ts",
     "dist/index.html",
-    "dist/assets/index-Deem53FM.js",
+    "dist/assets/index-CKEVqHnx.js",
     "dist/assets/index-2TOHQjxV.css",
   ];
   const imageBlob = await request<GitObject>(`${githubBase}/git/blobs`, "POST", {
@@ -289,7 +289,7 @@ export async function publishGithubMirror(input: { connectionToken: string; owne
     ],
   });
   const commit = await request<GitObject>(`${githubBase}/git/commits`, "POST", {
-    message: "Fix Telegram media images and add event poster",
+    message: "Fix event image path and Telegram media images",
     tree: tree.sha,
     parents: [ref.object.sha],
   });
