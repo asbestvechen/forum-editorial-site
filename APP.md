@@ -9,11 +9,12 @@
 ## What It Does
 
 - Editorial landing page with a restrained cream, walnut, charcoal, and gold visual system, using Montserrat throughout; the hero uses a clean desktop two-column composition with copy on the left and a warm light editorial color grade of the original interior photograph on the right, stacking only on tablet/mobile.
-- Navigation for Направления, О нас, Наша команда, Контакты, plus a disabled События item reserved for a future page.
+- Navigation for Направления, О нас, Наша команда, События, Контакты; the Events route is available at `#/events`.
 - Equal-height directions gallery with a touch-friendly horizontal strip on mobile that no longer traps the page's vertical scroll, preserving the original seven service categories; a horizontal swipe advances exactly one card with smooth snapping, while the detail drawer exposes a scrollable chip list with local brand marks and text fallbacks for the full known partner/factory list.
 - Mobile Editorial hero uses a vertical full-screen interior photo with an animated cream headline panel entering from the bottom; supporting copy and CTAs remain in normal flow immediately below the image.
 - Wide responsive direction detail drawer: on desktop it uses a two-column image/text composition so the title and description are visible immediately; on mobile it becomes a full-height sheet with the same content, accessible keyboard/backdrop controls, and left/right swipe navigation.
 - Team route at `#/team` with a split editorial hero, department filters for the seven directions plus Logistics, a filtered vertical staff roster, and one active profile spread instead of a card grid; the three individual portraits are curated 560×820 WebP assets with cache-busted URLs.
+- Events route at `#/events` with a warm editorial event announcement, a Telegram-derived post feed, a registration form collecting name and phone, and a Telegram channel CTA. Post cards are deterministically categorized and formatted so new publications keep the same visual language without rewriting the original copy.
 - Interactive Yandex map embed for г. Екатеринбург, ул. Хохрякова, 18.
 - Lightweight front end: local WebP photography, lazy-loaded below-the-fold images, cinematic title/image reveal masks, restrained cursor-responsive hero tilt and spotlight, desktop sequential card reveals with an immediate all-card reveal on mobile, Lenis-powered inertial wheel scrolling with touch-safe horizontal cards, smooth hash navigation with sticky-header offset, reduced-motion fallback, metadata, and LocalBusiness JSON-LD.
 
@@ -25,6 +26,10 @@
 - `src/lib/brand.ts`: single source of truth for brand, contacts, directions, partner/factory lists, advantages, and placeholder team content.
 - `src/lib/scroll.ts`: global Lenis lifecycle plus anchor/top scrolling helpers.
 - `src/components/DirectionDrawer.tsx`: accessible responsive detail drawer for the existing direction cards.
+- `src/components/EventsPage.tsx`: editorial Events page, Telegram feed states, featured-event block, and registration form.
+- `src/api/telegram.ts`: public `t.me/s/salon4room` parser and deterministic post categorization/title/excerpt formatting.
+- `src/api/procedures.ts`: Events page query, idempotent feed sync, registration storage/notification hook, and `/event` bot command handler.
+- `schema.prisma` and `migrations/20260903210000_events_telegram/`: Telegram posts, featured events, registrations, and sync state.
 - `public/images/directions/`: curated 4:5 WebP editorial interiors used inside the existing direction categories, unified around the brighter warm-white, pale oak, limestone, textile, charcoal, and muted brass palette of the original series.
 - `public/images/team/`: temporary AI-generated team photography; replace these files later while preserving dimensions/filenames.
 - `public/images/brands/`: locally cached 128px brand marks sourced from public brand domains via favicon endpoints; unsupported or unnamed suppliers use a text-only wordmark fallback.
@@ -44,13 +49,15 @@ Real client content was taken from the old site (salon4room.ru) and updated for 
 
 ## Integrates With
 
-- **Internal**: none — the site currently uses no database or application API.
+- **Internal**: SQLite/Prisma for cached Telegram posts, events, registrations, and sync state.
+- **External**: public Telegram channel `@salon4room`; optional Telegram Bot API notification/update flow when the bot credentials and recipient chat are configured.
 
 ## Use Cases
 
 - Share the app URL with the client for visual approval.
 - Replace placeholder team images and copy in `src/lib/brand.ts` when the real materials are ready.
-- Add a real lead form/backend and build the Events page when the content and CRM workflow are approved.
+- Add the real event details through the bot `/event` format and connect the manager recipient chat before enabling live registration notifications.
+- The GitHub Pages mirror remains a static frontend; the dynamic RPC-backed feed and registration path are available from the Adaptive app URL unless a public API deployment is added for the mirror.
 
 ## Known Environment Quirk (for future agents)
 

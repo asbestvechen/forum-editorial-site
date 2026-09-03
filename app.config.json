@@ -1,0 +1,26 @@
+{
+  "crons": [
+    {
+      "slug": "sync-telegram-feed",
+      "name": "Синхронизация Telegram-ленты",
+      "description": "Забирает новые публикации публичного канала 4ROOM и сохраняет их для страницы «События».",
+      "schedule": "*/15 * * * *",
+      "rpcEndpoint": "syncTelegramFeed",
+      "isEnabled": true,
+      "timezone": "Asia/Yekaterinburg",
+      "agent": "standard"
+    },
+    {
+      "slug": "sync-telegram-bot",
+      "name": "Обновление событий через Telegram-бота",
+      "description": "Проверяет команды менеджера /event и обновляет ближайшее мероприятие на сайте.",
+      "schedule": "*/5 * * * *",
+      "rpcEndpoint": "syncTelegramBot",
+      "isEnabled": true,
+      "timezone": "Asia/Yekaterinburg",
+      "agent": "standard"
+    }
+  ],
+  "events": [],
+  "webhooks": []
+}

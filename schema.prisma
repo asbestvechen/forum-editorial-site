@@ -1,0 +1,68 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "./generated"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DB_FILE_NAME")
+}
+
+model User {
+  // Adaptive AI platform columns (do not change)
+  id     String  @id
+  name   String?
+  image  String?
+  handle String?
+
+  // Additional columns can be added here
+}
+
+model TelegramPost {
+  id                String   @id @default(cuid())
+  telegramMessageId Int      @unique
+  channelUsername   String
+  publishedAt       DateTime
+  category          String
+  title             String
+  text              String
+  excerpt           String
+  imageUrl          String?
+  telegramUrl       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Event {
+  id              String              @id @default(cuid())
+  title           String
+  startsAt        DateTime
+  displayTimezone  String              @default("Asia/Yekaterinburg")
+  location        String
+  description     String
+  capacity        Int?
+  imageUrl        String?
+  isPublished     Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  registrations   EventRegistration[]
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  fullName  String
+  phone     String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, createdAt])
+}
+
+model TelegramState {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
