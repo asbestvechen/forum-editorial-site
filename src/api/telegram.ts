@@ -59,8 +59,17 @@ function makeTitle(text: string, category: EventPostCategory) {
   return fallbackByCategory[category];
 }
 
-function makeExcerpt(text: string) {
-  const normalized = text
+function makeExcerpt(text: string, category: EventPostCategory) {
+  const firstLine = text.split("\n").map((line) => line.trim()).find(Boolean) ?? "";
+  const titleLine = firstLine
+    .replace(/^[✨🔥❤😍👍📍📩📲\s]+/u, "")
+    .replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  const body = titleLine === makeTitle(text, category)
+    ? text.slice(text.indexOf(firstLine) + firstLine.length).trim()
+    : text;
+  const normalized = body
     .replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -95,7 +104,7 @@ function parseMessageBlock(block: string): TelegramPost | null {
     category,
     title: makeTitle(text, category),
     text,
-    excerpt: makeExcerpt(text),
+    excerpt: makeExcerpt(text, category),
     imageUrl,
     imageUrls,
     telegramUrl: `${TELEGRAM_CHANNEL_URL}/${messageId}`,

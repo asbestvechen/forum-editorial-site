@@ -235,7 +235,7 @@ export async function publishTelegramExport(input: { connectionToken: string; ow
     "scripts/telegram-bot.ts", "scripts/standalone-server.ts", "public/events.json", "dist/events.json",
     "dist/index.html", ...assetNames.map((name) => `dist/assets/${name}`),
   ];
-  const exportedEvents = JSON.parse(await readFile(resolve(root, "public/events.json"), "utf8")) as { posts?: Array<{ telegramMessageId: number; imageUrls?: string[]; imageUrl?: string | null }> };
+  const exportedEvents = JSON.parse(await readFile(resolve(root, "public/events.json"), "utf8")) as { posts?: Array<{ imageUrls?: string[]; imageUrl?: string | null }> };
   const imageNames = new Set(["phonitura-business-breakfast.jpg"]);
   for (const post of exportedEvents.posts ?? []) {
     for (const imageUrl of post.imageUrls ?? (post.imageUrl ? [post.imageUrl] : [])) {

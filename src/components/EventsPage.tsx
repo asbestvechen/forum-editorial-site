@@ -47,23 +47,54 @@ function formatEventDate(event: FeaturedEvent | null) {
 function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
   const accent = eventPostCategoryAccent[post.category];
   const images = post.imageUrls?.length ? post.imageUrls : post.imageUrl ? [post.imageUrl] : [];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeImage = images[activeIndex] ?? images[0] ?? "";
+
+  const moveToImage = (nextIndex: number) => {
+    setActiveIndex(Math.max(0, Math.min(nextIndex, images.length - 1)));
+  };
 
   return (
     <div className="events-post__gallery">
       {images.length > 0 ? (
-        <div className={`events-post__media-grid events-post__media-grid--${images.length >= 5 ? "many" : Math.min(images.length, 4)}`}>
-          {images.map((imageUrl, imageIndex) => (
-            <a
-              className="events-post__media"
-              href={imageUrl}
-              key={`${imageUrl}-${imageIndex}`}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`Открыть фотографию ${imageIndex + 1} из ${images.length}`}
-            >
-              <img src={imageUrl} alt="" loading={index === 0 && imageIndex === 0 ? "eager" : "lazy"} />
-            </a>
-          ))}
+        <div className="events-post__gallery-stage-wrap">
+          <a
+            className="events-post__gallery-stage"
+            href={activeImage}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Открыть фотографию ${activeIndex + 1} из ${images.length} в полном размере`}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft") moveToImage(activeIndex - 1);
+              if (event.key === "ArrowRight") moveToImage(activeIndex + 1);
+            }}
+          >
+            <img
+              src={activeImage}
+              alt=""
+              loading={index === 0 ? "eager" : "lazy"}
+              onLoad={(event) => {
+                if (event.currentTarget.naturalWidth < 640) event.currentTarget.classList.add("events-post__media-image--lowres");
+              }}
+            />
+            <span className="events-post__gallery-position">{String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span>
+          </a>
+          {images.length > 1 && (
+            <div className="events-post__thumbnails" aria-label="Фотографии публикации">
+              {images.map((imageUrl, imageIndex) => (
+                <button
+                  className={`events-post__thumbnail ${imageIndex === activeIndex ? "events-post__thumbnail--active" : ""}`}
+                  type="button"
+                  key={`${imageUrl}-${imageIndex}`}
+                  aria-label={`Показать фотографию ${imageIndex + 1} из ${images.length}`}
+                  aria-pressed={imageIndex === activeIndex}
+                  onClick={() => moveToImage(imageIndex)}
+                >
+                  <img src={imageUrl} alt="" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="events-post__gallery-fallback" style={{ "--post-accent": accent } as CSSProperties}>

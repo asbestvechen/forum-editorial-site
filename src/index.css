@@ -2338,3 +2338,103 @@ a.footer-link:hover {
     line-height: 1.7;
   }
 }
+
+.events-post__gallery-stage-wrap {
+  min-width: 0;
+}
+
+.events-post__gallery-stage {
+  position: relative;
+  display: grid;
+  aspect-ratio: 4 / 3;
+  place-items: center;
+  overflow: hidden;
+  background: #e7ddd0;
+}
+
+.events-post__gallery-stage::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(251 248 243 / 50%);
+  content: "";
+  pointer-events: none;
+}
+
+.events-post__gallery-stage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #e7ddd0;
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1), filter 400ms ease;
+}
+
+.events-post__gallery-stage:hover img,
+.events-post__gallery-stage:focus-visible img {
+  filter: saturate(1.04);
+  transform: scale(1.025);
+}
+
+.events-post__gallery-stage img.events-post__media-image--lowres {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.events-post__gallery-position {
+  position: absolute;
+  z-index: 1;
+  right: 1rem;
+  bottom: 1rem;
+  border: 1px solid rgb(251 248 243 / 60%);
+  background: rgb(36 29 20 / 35%);
+  padding: 0.42rem 0.55rem;
+  color: #fbf8f3;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+}
+
+.events-post__thumbnails {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.events-post__thumbnail {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background: #e7ddd0;
+  cursor: pointer;
+  opacity: 0.58;
+  transition: border-color 200ms ease, opacity 200ms ease;
+}
+
+.events-post__thumbnail:hover,
+.events-post__thumbnail:focus-visible,
+.events-post__thumbnail--active {
+  border-color: #c98a12;
+  outline: none;
+  opacity: 1;
+}
+
+.events-post__thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 767px) {
+  .events-post__gallery-stage {
+    aspect-ratio: 4 / 3;
+  }
+
+  .events-post__thumbnails {
+    grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
+  }
+}

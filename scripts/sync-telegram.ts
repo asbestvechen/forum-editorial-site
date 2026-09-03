@@ -1,4 +1,4 @@
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fetchTelegramPreview } from "../src/api/telegram";
 import type { EventsPageData, TelegramPost } from "../src/lib/events";
@@ -44,6 +44,13 @@ async function downloadPostImage(post: TelegramPost, imageUrl: string, index: nu
 
 async function main() {
   await mkdir(imageDirectory, { recursive: true });
+  let featuredEvent: EventsPageData["featuredEvent"] = null;
+  try {
+    const current = JSON.parse(await readFile(eventsFile, "utf8")) as Partial<EventsPageData>;
+    featuredEvent = current.featuredEvent ?? null;
+  } catch {
+    // The first export starts without a featured event.
+  }
   const sourcePosts = await fetchTelegramPreview();
   const posts = await Promise.all(sourcePosts.map(async (post) => {
     const sourceImages = post.imageUrls.length > 0 ? post.imageUrls : post.imageUrl ? [post.imageUrl] : [];
@@ -51,7 +58,7 @@ async function main() {
     return { ...post, imageUrl: imageUrls[0] ?? null, imageUrls };
   }));
   const data: EventsPageData = {
-    featuredEvent: null,
+    featuredEvent,
     posts,
     channelUrl: "https://t.me/salon4room",
     lastSyncedAt: new Date().toISOString(),
