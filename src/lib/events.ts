@@ -81,6 +81,7 @@ export const fallbackEventsPage: EventsPageData = {
       title: "Объект Григория Заславского",
       text: "Заглянули на объект студии RIM.XIII и посмотрели, как продвигается реализация проекта.",
       excerpt: "Плитка, двери, декоративный свет и карнизы уже собирают пространство в цельный интерьер.",
+      imageUrl: "./images/events/phonitura-rim.jpg",
       telegramUrl: "https://t.me/salon4room",
     },
     {
@@ -92,6 +93,7 @@ export const fallbackEventsPage: EventsPageData = {
       title: "Новые образцы Arredo3",
       text: "Новые образцы фабрики Arredo3 уже в салоне.",
       excerpt: "Итальянский дизайн, продуманные детали и материалы, которые можно увидеть и оценить вживую.",
+      imageUrl: "./images/events/arredo3.jpg",
       telegramUrl: "https://t.me/salon4room",
     },
   ],

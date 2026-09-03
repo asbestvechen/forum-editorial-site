@@ -269,13 +269,21 @@ export async function publishGithubMirror(input: { connectionToken: string; owne
     "src/lib/env.ts",
     "src/lib/events.ts",
     "dist/index.html",
-    "dist/assets/index-CKEVqHnx.js",
+    "dist/assets/index-CCUo3u4J.js",
     "dist/assets/index-2TOHQjxV.css",
   ];
-  const imageBlob = await request<GitObject>(`${githubBase}/git/blobs`, "POST", {
-    content: await readFile(resolve(root, "public/images/events/phonitura-business-breakfast.jpg"), "base64"),
-    encoding: "base64",
-  });
+  const imageFiles = [
+    "phonitura-business-breakfast.jpg",
+    "phonitura-rim.jpg",
+    "arredo3.jpg",
+  ];
+  const imageEntries = await Promise.all(imageFiles.map(async (name) => {
+    const blob = await request<GitObject>(`${githubBase}/git/blobs`, "POST", {
+      content: await readFile(resolve(root, `public/images/events/${name}`), "base64"),
+      encoding: "base64",
+    });
+    return { path: `images/events/${name}`, mode: "100644", type: "blob", sha: blob.sha };
+  }));
   const tree = await request<GitObject>(`${githubBase}/git/trees`, "POST", {
     base_tree: current.tree.sha,
     tree: [
@@ -285,14 +293,14 @@ export async function publishGithubMirror(input: { connectionToken: string; owne
         type: "blob",
         content: await readFile(resolve(root, relativePath), "utf8"),
       }))),
-      { path: "images/events/phonitura-business-breakfast.jpg", mode: "100644", type: "blob", sha: imageBlob.sha },
+      ...imageEntries,
     ],
   });
   const commit = await request<GitObject>(`${githubBase}/git/commits`, "POST", {
-    message: "Fix event image path and Telegram media images",
+    message: "Add reliable event poster assets",
     tree: tree.sha,
     parents: [ref.object.sha],
   });
   await request(`${githubBase}/git/refs/heads/main`, "PATCH", { sha: commit.sha, force: false });
-  return { commit: commit.sha, url: commit.html_url ?? null, files: textFiles.length + 1 };
+  return { commit: commit.sha, url: commit.html_url ?? null, files: textFiles.length + imageEntries.length };
 }
