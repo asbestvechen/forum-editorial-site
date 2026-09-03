@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { ArrowDown, ArrowUpRight, MapPin } from "lucide-react";
 import { DirectionDrawer } from "@/components/DirectionDrawer";
-import { BrandLogo } from "@/components/BrandLogo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { advantages, brand, categories, lightImages } from "@/lib/brand";
 import type { Category } from "@/lib/brand";
@@ -241,12 +240,6 @@ export function VariantEditorial() {
                 <span className="block text-[10px] tracking-[0.2em] text-[#E6B94D] mb-2">{String(index + 1).padStart(2, "0")}</span>
                 <h3 className="font-display text-xl md:text-2xl leading-[0.95] mb-2">{category.title}</h3>
                 <p className="text-xs text-[#FBF8F3]/65 leading-relaxed max-w-[240px]">{category.desc}</p>
-                <div className="editorial-direction-brands">
-                  <span className="editorial-direction-brands__label">{category.brandLabel}</span>
-                  <div className="editorial-direction-brands__list" aria-label={`${category.brandLabel}: ${category.title}`}>
-                    {category.brands.map((brandName) => <BrandLogo key={brandName} name={brandName} />)}
-                  </div>
-                </div>
               </div>
             </button>
           ))}
