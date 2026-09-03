@@ -14,11 +14,24 @@ import {
 } from "@/lib/events";
 
 type EventsApi = {
-  getEventsPage: () => Promise<EventsPageData>;
   createEventRegistration: (input: { fullName: string; phone: string; eventId?: string }) => Promise<{ id: string; notification: string }>;
 };
 
 const api = apiClient<EventsApi>();
+
+async function submitRegistration(input: { fullName: string; phone: string; eventId?: string }) {
+  const response = await fetch("./api/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (response.ok) return response.json() as Promise<{ id: string; notification: string }>;
+  if (response.status !== 404) {
+    const payload = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(payload?.error ?? "Не удалось отправить заявку");
+  }
+  return api.createEventRegistration(input);
+}
 
 function formatEventDate(event: FeaturedEvent | null) {
   if (!event) return null;
@@ -114,7 +127,7 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
     setState("submitting");
     setError("");
     try {
-      await api.createEventRegistration({ fullName, phone, eventId: event.id });
+      await submitRegistration({ fullName, phone, eventId: event.id });
       setState("success");
       setFullName("");
       setPhone("");
@@ -172,10 +185,14 @@ export function EventsPage() {
 
   useEffect(() => {
     let active = true;
-    api.getEventsPage()
+    fetch("./events.json", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Events export returned ${response.status}`);
+        return response.json() as Promise<EventsPageData>;
+      })
       .then((data) => {
         if (!active) return;
-        if (data.posts.length || data.featuredEvent) setPageData(data);
+        setPageData({ ...fallbackEventsPage, ...data, posts: Array.isArray(data.posts) ? data.posts : [] });
       })
       .catch(() => undefined)
       .finally(() => {
@@ -215,7 +232,9 @@ export function EventsPage() {
             <p>{loading ? "Загружаем последние публикации" : "Публикации оформляются автоматически"}</p>
           </div>
           <div className="events-feed__grid">
-            {posts.map((post, index) => <PostCard key={`${post.telegramMessageId}-${post.id}`} post={post} index={index} />)}
+            {posts.length > 0 ? posts.map((post, index) => <PostCard key={`${post.telegramMessageId}-${post.id}`} post={post} index={index} />) : (
+              <div className="events-feed__empty">Публикации появятся после первой синхронизации с Telegram.</div>
+            )}
           </div>
         </section>
 

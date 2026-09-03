@@ -26,11 +26,15 @@
 - `src/lib/brand.ts`: single source of truth for brand, contacts, directions, partner/factory lists, advantages, and placeholder team content.
 - `src/lib/scroll.ts`: global Lenis lifecycle plus anchor/top scrolling helpers.
 - `src/components/DirectionDrawer.tsx`: accessible responsive detail drawer for the existing direction cards.
-- `src/components/EventsPage.tsx`: editorial Events page, Telegram feed states, featured-event block, and registration form.
+- `src/components/EventsPage.tsx`: editorial Events page, static Telegram export, featured-event block, and registration form.
 - `src/api/telegram.ts`: public `t.me/s/salon4room` parser and deterministic post categorization/title/excerpt formatting.
 - `src/api/procedures.ts`: Events page query, idempotent feed sync, registration storage/notification hook, and `/event` bot command handler.
+- `scripts/sync-telegram.ts`: standalone export command; downloads the current public Telegram media locally and writes `public/events.json`.
+- `scripts/telegram-bot.ts`: standalone long-polling bot; `/event` updates `public/events.json` without Adaptive or GitHub.
+- `scripts/standalone-server.ts`: optional Node server for serving `dist`, live `events.json`, and Telegram-backed registration submissions.
+- `public/events.json`: generated, real Telegram content snapshot; do not edit manually, regenerate with `npm run sync:telegram`.
 - `schema.prisma` and `migrations/20260903210000_events_telegram/`: Telegram posts, featured events, registrations, and sync state.
-- `public/images/events/phonitura-business-breakfast.jpg`: supplied PHONITURA poster used by the static fallback event card.
+- `public/images/events/phonitura-business-breakfast.jpg`: supplied PHONITURA poster kept as optional event artwork.
 - `public/images/directions/`: curated 4:5 WebP editorial interiors used inside the existing direction categories, unified around the brighter warm-white, pale oak, limestone, textile, charcoal, and muted brass palette of the original series.
 - `public/images/team/`: temporary AI-generated team photography; replace these files later while preserving dimensions/filenames.
 - `public/images/brands/`: locally cached 128px brand marks sourced from public brand domains via favicon endpoints; unsupported or unnamed suppliers use a text-only wordmark fallback.
@@ -58,7 +62,28 @@ Real client content was taken from the old site (salon4room.ru) and updated for 
 - Share the app URL with the client for visual approval.
 - Replace placeholder team images and copy in `src/lib/brand.ts` when the real materials are ready.
 - Add the real event details through the bot `/event` format and connect the manager recipient chat before enabling live registration notifications.
-- The GitHub Pages mirror remains a static frontend; the dynamic RPC-backed feed and registration path are available from the Adaptive app URL unless a public API deployment is added for the mirror.
+- For independent hosting, run `npm run sync:telegram` before each build, serve `dist` with `npm run serve:standalone`, and run `npm run bot:telegram` alongside it with `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, and `TELEGRAM_NOTIFY_CHAT_ID`.
+- GitHub Pages is only a static mirror; it now contains a generated real Telegram export rather than hand-written fallback posts. The independent hosting commands do not require Adaptive or GitHub at runtime.
+
+## Standalone Telegram Workflow
+
+1. Create or rotate the bot token in `@BotFather` and set `TELEGRAM_BOT_TOKEN` on the host.
+2. Start `npm run bot:telegram`; the bot uses long polling and does not need to be an administrator of `@salon4room` for manager commands.
+3. In a private chat with the bot, press Start and send:
+
+   ```text
+   /event
+
+   Название: Бизнес-завтрак с PHONITURA
+   Дата: 27.09.2026
+   Время: 12:00
+   Место: 4ROOM, ул. Хохрякова, 18
+   Описание: Готовые кейсы, живые примеры и ответы на вопросы о подборе акустических решений.
+   Лимит: 25
+   ```
+
+4. The bot validates that the date is in the future, writes `public/events.json`, updates `dist/events.json` when present, and confirms the new event in Telegram.
+5. Run `npm run serve:standalone` to serve the site and registration endpoint. Set `TELEGRAM_NOTIFY_CHAT_ID` so form submissions are sent to the manager.
 
 ## Known Environment Quirk (for future agents)
 

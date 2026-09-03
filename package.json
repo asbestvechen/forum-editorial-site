@@ -1,7 +1,7 @@
 {
   "name": "full-stack-app-template",
   "private": true,
-  "version": "1.26.0",
+  "version": "1.31.0",
   "type": "module",
   "scripts": {
     "dev:vite": "vite --host 0.0.0.0 2>&1 | tee -a vite-dev.log",
@@ -12,6 +12,9 @@
     "dev:types": "dts-bundle-generator --out-file=dev-api-exports.d.ts --no-check --project tsconfig.json --external-inlines @babel/types -- src/api/procedures.ts",
     "dev:stop": "node scripts/dev.mjs --stop",
     "dev:restart": "node scripts/dev.mjs --restart",
+    "sync:telegram": "tsx scripts/sync-telegram.ts",
+    "bot:telegram": "tsx scripts/telegram-bot.ts",
+    "serve:standalone": "tsx scripts/standalone-server.ts",
     "dev": "node scripts/dev.mjs",
     "check": "run-p check:types check:config",
     "check:types": "tsc --noEmit",
