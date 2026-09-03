@@ -4,7 +4,7 @@ import { fetchTelegramPreview, TELEGRAM_CHANNEL_URL } from "@/api/telegram";
 import type { EventPostCategory, FeaturedEvent, EventsPageData, TelegramPost } from "@/lib/events";
 import { EVENT_TIMEZONE, parseEventCommand } from "@/lib/telegram-event";
 import { mcp } from "@adaptive-ai/sdk/server";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const TELEGRAM_FEED_SYNC_KEY = "telegram_feed_last_synced_at";
@@ -26,6 +26,7 @@ function serializePost(post: {
     ...post,
     category: post.category as EventPostCategory,
     publishedAt: post.publishedAt.toISOString(),
+    imageUrls: post.imageUrl ? [post.imageUrl] : [],
   };
 }
 
@@ -212,8 +213,8 @@ export async function syncTelegramBot() {
   return { status: "ok" as const, processed };
 }
 
-// One-time maintainer helper for mirroring the standalone export and bundle.
-export async function publishGithubMirror(input: { connectionToken: string; owner: string; repo: string }) {
+// One-time maintainer helper for publishing the generated standalone export.
+export async function publishTelegramExport(input: { connectionToken: string; owner: string; repo: string }) {
   const githubBase = `https://api.github.com/repos/${input.owner}/${input.repo}`;
   const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
   const request = async <T>(url: string, method: string, body?: unknown) => {
@@ -227,29 +228,27 @@ export async function publishGithubMirror(input: { connectionToken: string; owne
   const ref = await request<Ref>(`${githubBase}/git/ref/heads/main`, "GET");
   const current = await request<Commit>(`${githubBase}/git/commits/${ref.object.sha}`, "GET");
   const root = process.cwd();
+  const assetNames = (await readdir(resolve(root, "dist/assets"))).filter((name) => /^index-.*\.(js|css)$/.test(name));
   const textFiles = [
-    "APP.md", "app.config.json", "package.json", "schema.prisma",
-    "migrations/20260903210000_events_telegram/migration.sql",
-    "src/App.tsx", "src/api/procedures.ts", "src/api/telegram.ts",
-    "src/components/EventsPage.tsx", "src/components/SiteHeader.tsx", "src/index.css",
-    "src/lib/env.ts", "src/lib/events.ts", "src/lib/telegram-event.ts",
-    "scripts/sync-telegram.ts", "scripts/telegram-bot.ts", "scripts/standalone-server.ts",
-    "public/events.json", "dist/events.json", "dist/index.html",
-    "dist/assets/index-VtxActq_.js", "dist/assets/index-2TOHQjxV.css",
+    "APP.md", "package.json", "schema.prisma", "src/api/procedures.ts", "src/api/telegram.ts",
+    "src/components/EventsPage.tsx", "src/index.css", "src/lib/events.ts", "scripts/sync-telegram.ts",
+    "scripts/telegram-bot.ts", "scripts/standalone-server.ts", "public/events.json", "dist/events.json",
+    "dist/index.html", ...assetNames.map((name) => `dist/assets/${name}`),
   ];
-  const imageNames = [
-    "phonitura-business-breakfast.jpg", "phonitura-rim.jpg", "arredo3.jpg",
-    "telegram-557.jpg", "telegram-562.jpg", "telegram-563.jpg", "telegram-573.jpg",
-    "telegram-574.jpg", "telegram-575.jpg",
-  ];
-  const imageEntries = await Promise.all(imageNames.map(async (name) => {
-    const sourceDirectory = "public/images/events/";
-    const targetDirectory = "images/events/";
+  const exportedEvents = JSON.parse(await readFile(resolve(root, "public/events.json"), "utf8")) as { posts?: Array<{ telegramMessageId: number; imageUrls?: string[]; imageUrl?: string | null }> };
+  const imageNames = new Set(["phonitura-business-breakfast.jpg"]);
+  for (const post of exportedEvents.posts ?? []) {
+    for (const imageUrl of post.imageUrls ?? (post.imageUrl ? [post.imageUrl] : [])) {
+      const match = imageUrl.match(/(?:^|\/)(telegram-[^/]+\.(?:jpg|png|webp))$/);
+      if (match) imageNames.add(match[1]);
+    }
+  }
+  const imageEntries = await Promise.all(Array.from(imageNames).map(async (name) => {
     const blob = await request<GitObject>(`${githubBase}/git/blobs`, "POST", {
-      content: await readFile(resolve(root, sourceDirectory + name), "base64"),
+      content: await readFile(resolve(root, `public/images/events/${name}`), "base64"),
       encoding: "base64",
     });
-    return { path: targetDirectory + name, mode: "100644", type: "blob", sha: blob.sha };
+    return { path: `images/events/${name}`, mode: "100644", type: "blob", sha: blob.sha };
   }));
   const tree = await request<GitObject>(`${githubBase}/git/trees`, "POST", {
     base_tree: current.tree.sha,
@@ -264,10 +263,10 @@ export async function publishGithubMirror(input: { connectionToken: string; owne
     ],
   });
   const commit = await request<GitObject>(`${githubBase}/git/commits`, "POST", {
-    message: "Make Telegram events export standalone",
+    message: "Publish Telegram gallery feed",
     tree: tree.sha,
     parents: [ref.object.sha],
   });
   await request(`${githubBase}/git/refs/heads/main`, "PATCH", { sha: commit.sha, force: false });
-  return { commit: commit.sha, url: commit.html_url ?? null, files: textFiles.length + imageEntries.length };
+  return { commit: commit.sha, url: commit.html_url ?? null, images: imageEntries.length };
 }

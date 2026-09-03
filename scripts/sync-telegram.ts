@@ -7,42 +7,49 @@ const projectRoot = process.cwd();
 const eventsFile = resolve(projectRoot, "public/events.json");
 const imageDirectory = resolve(projectRoot, "public/images/events");
 
-async function findExistingImage(post: TelegramPost) {
+async function findExistingImage(post: TelegramPost, index: number) {
+  const names = [
+    `telegram-${post.telegramMessageId}-${String(index + 1).padStart(2, "0")}`,
+    ...(index === 0 ? [`telegram-${post.telegramMessageId}`] : []),
+  ];
   for (const extension of ["jpg", "png", "webp"]) {
-    const fileName = `telegram-${post.telegramMessageId}.${extension}`;
-    try {
-      await access(resolve(imageDirectory, fileName));
-      return `./images/events/${fileName}`;
-    } catch {
-      // Try the next supported extension.
+    for (const name of names) {
+      const fileName = `${name}.${extension}`;
+      try {
+        await access(resolve(imageDirectory, fileName));
+        return `./images/events/${fileName}`;
+      } catch {
+        // Try the next supported filename.
+      }
     }
   }
   return null;
 }
 
-async function downloadPostImage(post: TelegramPost) {
-  if (!post.imageUrl || !post.imageUrl.startsWith("http")) return post.imageUrl ?? null;
+async function downloadPostImage(post: TelegramPost, imageUrl: string, index: number) {
+  if (!imageUrl.startsWith("http")) return imageUrl;
 
   try {
-    const response = await fetch(post.imageUrl, { headers: { "User-Agent": "4ROOM-events-export/1.0" } });
-    if (!response.ok) return (await findExistingImage(post)) ?? post.imageUrl;
+    const response = await fetch(imageUrl, { headers: { "User-Agent": "4ROOM-events-export/1.0" } });
+    if (!response.ok) return (await findExistingImage(post, index)) ?? imageUrl;
     const contentType = response.headers.get("content-type") ?? "image/jpeg";
     const extension = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
-    const fileName = `telegram-${post.telegramMessageId}.${extension}`;
+    const fileName = `telegram-${post.telegramMessageId}-${String(index + 1).padStart(2, "0")}.${extension}`;
     await writeFile(resolve(imageDirectory, fileName), Buffer.from(await response.arrayBuffer()));
     return `./images/events/${fileName}`;
   } catch {
-    return (await findExistingImage(post)) ?? post.imageUrl;
+    return (await findExistingImage(post, index)) ?? imageUrl;
   }
 }
 
 async function main() {
   await mkdir(imageDirectory, { recursive: true });
   const sourcePosts = await fetchTelegramPreview();
-  const posts = await Promise.all(sourcePosts.map(async (post) => ({
-    ...post,
-    imageUrl: await downloadPostImage(post),
-  })));
+  const posts = await Promise.all(sourcePosts.map(async (post) => {
+    const sourceImages = post.imageUrls.length > 0 ? post.imageUrls : post.imageUrl ? [post.imageUrl] : [];
+    const imageUrls = await Promise.all(sourceImages.map((imageUrl, index) => downloadPostImage(post, imageUrl, index)));
+    return { ...post, imageUrl: imageUrls[0] ?? null, imageUrls };
+  }));
   const data: EventsPageData = {
     featuredEvent: null,
     posts,

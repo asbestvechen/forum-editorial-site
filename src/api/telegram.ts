@@ -43,7 +43,11 @@ function classifyPost(text: string): EventPostCategory {
 function makeTitle(text: string, category: EventPostCategory) {
   const firstLine = text.split("\n").map((line) => line.trim()).find(Boolean) ?? "Новая публикация 4ROOM";
   const firstSentence = firstLine.split(/(?<=[.!?])\s+/)[0] ?? firstLine;
-  const title = firstSentence.replace(/^[✨🔥❤😍👍📍📩📲\s]+/u, "").trim();
+  const title = firstSentence
+    .replace(/^[✨🔥❤😍👍📍📩📲\s]+/u, "")
+    .replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
   if (title.length <= 84) return title;
   const fallbackByCategory: Record<EventPostCategory, string> = {
     event: "Новая встреча в салоне",
@@ -56,7 +60,10 @@ function makeTitle(text: string, category: EventPostCategory) {
 }
 
 function makeExcerpt(text: string) {
-  const normalized = text.replace(/\s+/g, " ").trim();
+  const normalized = text
+    .replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
   if (normalized.length <= 190) return normalized;
   return `${normalized.slice(0, 187).trimEnd()}…`;
 }
@@ -71,11 +78,14 @@ function parseMessageBlock(block: string): TelegramPost | null {
   if (!text) return null;
 
   const category = classifyPost(text);
-  // Telegram uses the first <img> for the channel avatar in every message.
-  // Prefer the media background image so feed cards do not repeat that avatar.
-  const mediaMatch = block.match(/background-image:url\(['"]?([^'")]+)/i);
+  const photoTags = block.match(/<a\b[^>]*class="[^"]*tgme_widget_message_photo_wrap[^"]*"[^>]*>/gi) ?? [];
+  const imageUrls = Array.from(new Set(photoTags
+    .map((tag) => tag.match(/background-image:\s*url\(['"]?([^'")]+)/i)?.[1] ?? null)
+    .filter((url): url is string => Boolean(url))
+    .map(decodeHtml)));
+  const videoPoster = block.match(/class="[^"]*tgme_widget_message_video_thumb[^"]*"[^>]+style="[^"]*background-image:\s*url\(['"]?([^'")]+)/i)?.[1] ?? null;
   const imageMatch = block.match(/<img[^>]+src="([^"]+)"/i);
-  const imageUrl = mediaMatch?.[1] ?? imageMatch?.[1] ?? null;
+  const imageUrl = imageUrls[0] ?? (videoPoster ? decodeHtml(videoPoster) : imageMatch?.[1] ? decodeHtml(imageMatch[1]) : null);
 
   return {
     id: `telegram-${messageId}`,
@@ -86,7 +96,8 @@ function parseMessageBlock(block: string): TelegramPost | null {
     title: makeTitle(text, category),
     text,
     excerpt: makeExcerpt(text),
-    imageUrl: imageUrl ? decodeHtml(imageUrl) : null,
+    imageUrl,
+    imageUrls,
     telegramUrl: `${TELEGRAM_CHANNEL_URL}/${messageId}`,
   };
 }

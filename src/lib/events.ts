@@ -10,6 +10,7 @@ export type TelegramPost = {
   text: string;
   excerpt: string;
   imageUrl?: string | null;
+  imageUrls: string[];
   telegramUrl: string;
 };
 

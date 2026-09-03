@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { ArrowUpRight, CalendarDays, Check, Clock3, MapPin, Send, Sparkles } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Send, Sparkles } from "lucide-react";
 import { apiClient } from "@adaptive-ai/sdk/client";
 import { SiteHeader } from "@/components/SiteHeader";
 import { brand } from "@/lib/brand";
@@ -44,25 +44,51 @@ function formatEventDate(event: FeaturedEvent | null) {
   };
 }
 
+function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
+  const accent = eventPostCategoryAccent[post.category];
+  const images = post.imageUrls?.length ? post.imageUrls : post.imageUrl ? [post.imageUrl] : [];
+
+  return (
+    <div className="events-post__gallery">
+      {images.length > 0 ? (
+        <div className={`events-post__media-grid events-post__media-grid--${images.length >= 5 ? "many" : Math.min(images.length, 4)}`}>
+          {images.map((imageUrl, imageIndex) => (
+            <a
+              className="events-post__media"
+              href={imageUrl}
+              key={`${imageUrl}-${imageIndex}`}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Открыть фотографию ${imageIndex + 1} из ${images.length}`}
+            >
+              <img src={imageUrl} alt="" loading={index === 0 && imageIndex === 0 ? "eager" : "lazy"} />
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div className="events-post__gallery-fallback" style={{ "--post-accent": accent } as CSSProperties}>
+          <Sparkles size={26} strokeWidth={1} />
+        </div>
+      )}
+      <div className="events-post__gallery-caption">
+        <span><Images size={14} strokeWidth={1.4} /> {images.length ? `${images.length} фото` : "Без фото"}</span>
+      </div>
+    </div>
+  );
+}
+
 function PostCard({ post, index }: { post: TelegramPost; index: number }) {
   const accent = eventPostCategoryAccent[post.category];
   return (
-    <article className={`events-post events-post--${index === 0 ? "lead" : index === 1 ? "wide" : "compact"}`}>
-      {post.imageUrl ? (
-        <div className="events-post__image-wrap">
-          <img className="events-post__image" src={post.imageUrl} alt="" loading={index > 0 ? "lazy" : "eager"} />
-          <span className="events-post__image-index">{String(index + 1).padStart(2, "0")}</span>
-        </div>
-      ) : (
-        <div className="events-post__image-wrap events-post__image-wrap--fallback" style={{ "--post-accent": accent } as CSSProperties}>
-          <Sparkles size={26} strokeWidth={1} />
-          <span className="events-post__image-index">{String(index + 1).padStart(2, "0")}</span>
-        </div>
-      )}
+    <article className={`events-post ${index % 2 === 1 ? "events-post--reverse" : ""}`}>
+      <PostGallery post={post} index={index} />
       <div className="events-post__body">
-        <div className="events-post__meta">
-          <span style={{ color: accent }}>{eventPostCategoryLabels[post.category]}</span>
-          <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt)}</time>
+        <div className="events-post__eyebrow">
+          <span className="events-post__number">{String(index + 1).padStart(2, "0")}</span>
+          <div className="events-post__meta">
+            <span style={{ color: accent }}>{eventPostCategoryLabels[post.category]}</span>
+            <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt)}</time>
+          </div>
         </div>
         <h3>{post.title}</h3>
         <p>{post.excerpt}</p>
