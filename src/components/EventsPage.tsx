@@ -239,24 +239,31 @@ export function EventsPage() {
   const [registrationOpen, setRegistrationOpen] = useState(false);
   const [feedState, setFeedState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [feedMessage, setFeedMessage] = useState("");
+  const isGithubPages = window.location.hostname.endsWith("github.io");
   const posts = useMemo(() => pageData.posts.slice(0, 12), [pageData.posts]);
 
   useEffect(() => {
     let active = true;
     const loadEvents = async () => {
       try {
+        const staticFirst = window.location.hostname.endsWith("github.io");
+        const loadStatic = async () => {
+          const staticResponse = await fetch(`./events.json?updated=${Date.now()}`, { cache: "no-store" });
+          if (!staticResponse.ok) throw new Error(`Events export returned ${staticResponse.status}`);
+          return normalizeEventsPage(await staticResponse.json() as EventsPageData);
+        };
+        if (staticFirst) {
+          if (active) setPageData(await loadStatic());
+          return;
+        }
         if (eventsApiUrl) {
           const liveResponse = await fetch(eventsApiUrl, { cache: "no-store" });
           if (liveResponse.ok) {
-            const liveData = await liveResponse.json() as EventsPageData;
-            if (active) setPageData(normalizeEventsPage(liveData));
+            if (active) setPageData(normalizeEventsPage(await liveResponse.json() as EventsPageData));
             return;
           }
         }
-        const staticResponse = await fetch(`./events.json?updated=${Date.now()}`, { cache: "no-store" });
-        if (!staticResponse.ok) throw new Error(`Events export returned ${staticResponse.status}`);
-        const staticData = await staticResponse.json() as EventsPageData;
-        if (active) setPageData(normalizeEventsPage(staticData));
+        if (active) setPageData(await loadStatic());
       } catch {
         // Keep the empty fallback if both the live API and static export are unavailable.
       }
@@ -266,6 +273,21 @@ export function EventsPage() {
   }, []);
 
   const refreshFeed = async () => {
+    if (isGithubPages) {
+      setFeedState("loading");
+      setFeedMessage("");
+      try {
+        const response = await fetch(`./events.json?updated=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Events export returned ${response.status}`);
+        setPageData(normalizeEventsPage(await response.json() as EventsPageData));
+        setFeedState("success");
+        setFeedMessage("Лента обновлена из GitHub");
+      } catch (error) {
+        setFeedState("error");
+        setFeedMessage(error instanceof Error ? error.message : "Не удалось загрузить ленту");
+      }
+      return;
+    }
     if (!eventsApiUrl) {
       setFeedState("error");
       setFeedMessage("Ручное обновление пока недоступно");

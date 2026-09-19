@@ -23,6 +23,7 @@ const distEventsFile = resolve(projectRoot, process.env.DIST_EVENTS_FILE ?? "dis
 const offsetFile = resolve(projectRoot, process.env.TELEGRAM_OFFSET_FILE ?? "data/telegram-update-offset.txt");
 const draftsFile = resolve(projectRoot, process.env.TELEGRAM_DRAFTS_FILE ?? "data/telegram-event-drafts.json");
 const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+const once = process.env.TELEGRAM_ONCE === "1" || process.env.TELEGRAM_ONCE === "true";
 
 type TelegramUpdate = {
   update_id: number;
@@ -196,7 +197,7 @@ async function main() {
     try {
       const updates = await telegramRequest<TelegramUpdate[]>("getUpdates", {
         offset,
-        timeout: 30,
+        timeout: once ? 0 : 30,
         allowed_updates: ["message"],
       });
       for (const update of updates ?? []) {
@@ -204,8 +205,10 @@ async function main() {
         await writeOffset(offset);
         await handleUpdate(update);
       }
+      if (once) break;
     } catch (error) {
       console.error(`[telegram] polling error: ${error instanceof Error ? error.message : String(error)}`);
+      if (once) throw error;
       await new Promise((resolvePromise) => setTimeout(resolvePromise, 5_000));
     }
   }
