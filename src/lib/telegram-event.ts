@@ -8,7 +8,9 @@ export type ParsedEvent = {
   capacity: number | null;
 };
 
-export type EventDraftStep = "title" | "date" | "time" | "location" | "description" | "capacity";
+export type EventDraftStep = "title" | "date" | "time" | "location" | "description" | "capacity" | "confirm";
+
+export type EventReplyKeyboardMode = "idle" | "draft" | "confirm";
 
 export type EventDraft = {
   step: EventDraftStep;
@@ -29,11 +31,14 @@ export const TELEGRAM_EVENT_COMMANDS = [
   { command: "event", description: "Создать мероприятие" },
 ];
 
-export function eventReplyKeyboard(isDraftActive = false) {
+export function eventReplyKeyboard(mode: EventReplyKeyboardMode | boolean = "idle") {
+  const resolvedMode: EventReplyKeyboardMode = typeof mode === "boolean" ? (mode ? "draft" : "idle") : mode;
   return {
-    keyboard: isDraftActive
-      ? [[{ text: "/event" }, { text: "Отмена" }]]
-      : [[{ text: "/event" }]],
+    keyboard: resolvedMode === "confirm"
+      ? [[{ text: "Опубликовать" }], [{ text: "Изменить" }, { text: "Отмена" }]]
+      : resolvedMode === "draft"
+        ? [[{ text: "Отмена" }]]
+        : [[{ text: "/event" }]],
     resize_keyboard: true,
     is_persistent: true,
   };
@@ -46,18 +51,57 @@ export function startEventDraft(): EventDraft {
 export function eventDraftPrompt(step: EventDraftStep) {
   switch (step) {
     case "title":
-      return "Название мероприятия?";
+      return "Шаг 1 из 6\n\nНазвание мероприятия?";
     case "date":
-      return "Дата?\nФормат: ДД.ММ.ГГГГ, например 27.09.2026";
+      return "Шаг 2 из 6\n\nДата?\nФормат: ДД.ММ.ГГГГ, например 27.09.2026";
     case "time":
-      return "Время?\nФормат: ЧЧ:ММ, например 12:00";
+      return "Шаг 3 из 6\n\nВремя?\nФормат: ЧЧ:ММ, например 12:00";
     case "location":
-      return "Место?";
+      return "Шаг 4 из 6\n\nМесто?\nНапример: 4ROOM, ул. Хохрякова, 18";
     case "description":
-      return "Описание мероприятия?";
+      return "Шаг 5 из 6\n\nОписание мероприятия?\nКоротко расскажите, что ждёт гостей.";
     case "capacity":
-      return "Лимит участников?\nНапишите число или «пропустить».";
+      return "Шаг 6 из 6\n\nЛимит участников?\nНапишите число или «пропустить».";
+    case "confirm":
+      return "Проверьте данные перед публикацией.";
   }
+}
+
+function parsedEventFromDraft(draft: EventDraft): ParsedEvent | null {
+  const startsAt = parseEventDateTime(draft.date ?? "", draft.time ?? "");
+  if (!startsAt || !draft.title || !draft.location || !draft.description) return null;
+  return {
+    title: draft.title,
+    startsAt,
+    location: draft.location,
+    description: draft.description,
+    capacity: draft.capacity ?? null,
+  };
+}
+
+export function eventDraftSummary(draft: EventDraft) {
+  const parsed = parsedEventFromDraft(draft);
+  if (!parsed) return eventDraftPrompt("confirm");
+  const date = new Intl.DateTimeFormat("ru-RU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: EVENT_TIMEZONE,
+  }).format(parsed.startsAt);
+  return [
+    "✨ Проверьте мероприятие",
+    "",
+    `📌 ${parsed.title}`,
+    `🗓 ${date}`,
+    `📍 ${parsed.location}`,
+    `👥 ${parsed.capacity ? `${parsed.capacity} мест` : "Без ограничения по местам"}`,
+    "",
+    `📝 ${parsed.description}`,
+    "",
+    "Если всё верно, нажмите «Опубликовать».",
+  ].join("\n");
 }
 
 export function normalizeEventDate(value: string) {
@@ -99,7 +143,7 @@ export function parseEventDateTime(dateValue: string, timeValue: string) {
 }
 
 function parseCapacity(value: string | undefined) {
-  if (!value || /^(?:пропустить|нет|без лимита|-)$/i.test(value.trim())) return null;
+  if (!value || /^(?:пропустить|нет|без лимита|без ограничений|-)$/i.test(value.trim())) return null;
   const capacity = Number.parseInt(value.trim(), 10);
   return Number.isInteger(capacity) && capacity > 0 ? capacity : null;
 }
@@ -129,6 +173,20 @@ export function parseEventCommand(text: string): ParsedEvent | null {
 export function advanceEventDraft(draft: EventDraft, input: string): EventDraftAdvance {
   const value = input.trim();
   if (!value) return { kind: "invalid", draft, message: `Пустое сообщение не подходит. Попробуйте ещё раз.\n\n${eventDraftPrompt(draft.step)}` };
+
+  if (draft.step === "confirm") {
+    if (/^опубликовать$/i.test(value)) {
+      const parsed = parsedEventFromDraft(draft);
+      if (!parsed) return { kind: "invalid", draft, message: "Не удалось собрать данные мероприятия. Нажмите «Изменить» и заполните форму заново." };
+      if (parsed.startsAt <= new Date()) return { kind: "invalid", draft, message: "Дата мероприятия уже прошла. Нажмите «Изменить» и укажите будущую дату." };
+      return { kind: "complete", parsed };
+    }
+    if (/^(?:изменить|начать заново)$/i.test(value)) {
+      const nextDraft = startEventDraft();
+      return { kind: "prompt", draft: nextDraft, message: `Начнём заново.\n\n${eventDraftPrompt(nextDraft.step)}` };
+    }
+    return { kind: "invalid", draft, message: `Выберите «Опубликовать» или «Изменить».\n\n${eventDraftSummary(draft)}` };
+  }
 
   if (draft.step === "title") {
     if (value.length < 2) return { kind: "invalid", draft, message: `Название слишком короткое.\n\n${eventDraftPrompt("title")}` };
@@ -161,22 +219,13 @@ export function advanceEventDraft(draft: EventDraft, input: string): EventDraftA
   }
 
   const capacity = parseCapacity(value);
-  if (capacity === null && !/^(?:пропустить|нет|без лимита|-)$/i.test(value)) {
+  if (capacity === null && !/^(?:пропустить|нет|без лимита|без ограничений|-)$/i.test(value)) {
     return { kind: "invalid", draft, message: `Лимит должен быть целым числом или словом «пропустить».\n\n${eventDraftPrompt("capacity")}` };
   }
 
-  const startsAt = parseEventDateTime(draft.date ?? "", draft.time ?? "");
-  if (!startsAt) return { kind: "invalid", draft, message: "Не удалось собрать дату и время. Начните заново кнопкой /event." };
-  if (startsAt <= new Date()) return { kind: "invalid", draft, message: "Дата мероприятия должна быть в будущем. Начните заново кнопкой /event." };
-
-  return {
-    kind: "complete",
-    parsed: {
-      title: draft.title ?? "",
-      startsAt,
-      location: draft.location ?? "",
-      description: draft.description ?? "",
-      capacity,
-    },
-  };
+  const nextDraft = { ...draft, capacity, step: "confirm" as const };
+  const parsed = parsedEventFromDraft(nextDraft);
+  if (!parsed) return { kind: "invalid", draft, message: "Не удалось собрать данные мероприятия. Начните заново кнопкой /event." };
+  if (parsed.startsAt <= new Date()) return { kind: "invalid", draft, message: "Дата мероприятия должна быть в будущем. Укажите другую дату." };
+  return { kind: "prompt", draft: nextDraft, message: eventDraftSummary(nextDraft) };
 }

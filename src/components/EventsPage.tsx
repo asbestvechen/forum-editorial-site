@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Sparkles } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, RefreshCw, Sparkles } from "lucide-react";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { SiteHeader } from "@/components/SiteHeader";
+import { env } from "@/lib/env";
 import { brand } from "@/lib/brand";
 import {
   eventPostCategoryAccent,
@@ -23,6 +24,23 @@ function formatEventDate(event: FeaturedEvent | null) {
     full: new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long", timeZone: event.displayTimezone }).format(date),
     time: new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: event.displayTimezone }).format(date),
   };
+}
+
+const eventsApiUrl = env.VITE_REGISTRATION_API_URL?.replace(/\/api\/register\/?$/, "/api/events");
+
+function normalizeEventsPage(data: Partial<EventsPageData>): EventsPageData {
+  return {
+    ...fallbackEventsPage,
+    ...data,
+    posts: Array.isArray(data.posts) ? data.posts : [],
+  };
+}
+
+function formatSyncTime(value: string | null) {
+  if (!value) return "Источник: Telegram";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Источник: Telegram";
+  return `Обновлено ${new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Yekaterinburg" }).format(date).replace(".", "")}`;
 }
 
 function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
@@ -219,22 +237,57 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
 export function EventsPage() {
   const [pageData, setPageData] = useState<EventsPageData>(fallbackEventsPage);
   const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [feedState, setFeedState] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [feedMessage, setFeedMessage] = useState("");
   const posts = useMemo(() => pageData.posts.slice(0, 12), [pageData.posts]);
 
   useEffect(() => {
     let active = true;
-    fetch("./events.json", { cache: "no-store" })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Events export returned ${response.status}`);
-        return response.json() as Promise<EventsPageData>;
-      })
-      .then((data) => {
-        if (!active) return;
-        setPageData({ ...fallbackEventsPage, ...data, posts: Array.isArray(data.posts) ? data.posts : [] });
-      })
-      .catch(() => undefined);
+    const loadEvents = async () => {
+      try {
+        if (eventsApiUrl) {
+          const liveResponse = await fetch(eventsApiUrl, { cache: "no-store" });
+          if (liveResponse.ok) {
+            const liveData = await liveResponse.json() as EventsPageData;
+            if (active) setPageData(normalizeEventsPage(liveData));
+            return;
+          }
+        }
+        const staticResponse = await fetch(`./events.json?updated=${Date.now()}`, { cache: "no-store" });
+        if (!staticResponse.ok) throw new Error(`Events export returned ${staticResponse.status}`);
+        const staticData = await staticResponse.json() as EventsPageData;
+        if (active) setPageData(normalizeEventsPage(staticData));
+      } catch {
+        // Keep the empty fallback if both the live API and static export are unavailable.
+      }
+    };
+    void loadEvents();
     return () => { active = false; };
   }, []);
+
+  const refreshFeed = async () => {
+    if (!eventsApiUrl) {
+      setFeedState("error");
+      setFeedMessage("Ручное обновление пока недоступно");
+      return;
+    }
+    setFeedState("loading");
+    setFeedMessage("");
+    try {
+      const response = await fetch(`${eventsApiUrl}/sync`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json() as (Partial<EventsPageData> & { error?: string; sync?: { synced?: number } });
+      if (!response.ok) throw new Error(data.error ?? "Не удалось обновить ленту");
+      setPageData(normalizeEventsPage(data));
+      setFeedState("success");
+      setFeedMessage(data.sync?.synced ? `Загружено публикаций: ${data.sync.synced}` : "Лента обновлена");
+    } catch (error) {
+      setFeedState("error");
+      setFeedMessage(error instanceof Error ? error.message : "Не удалось обновить ленту");
+    }
+  };
 
   return (
     <div className="site-editorial events-page font-body bg-[#FBF8F3] text-[#241D14]">
@@ -263,6 +316,14 @@ export function EventsPage() {
             <div>
               <p className="events-kicker">Из канала 4ROOM</p>
               <h2>Новости салона</h2>
+            </div>
+            <div className="events-feed__controls">
+              <span className="events-feed__status">{formatSyncTime(pageData.lastSyncedAt)}</span>
+              <button className="events-feed__refresh" type="button" onClick={() => void refreshFeed()} disabled={feedState === "loading"}>
+                <RefreshCw size={15} strokeWidth={1.5} className={feedState === "loading" ? "events-feed__refresh-icon--loading" : ""} />
+                {feedState === "loading" ? "Обновляем…" : "Обновить посты"}
+              </button>
+              {feedMessage && <span className={`events-feed__message events-feed__message--${feedState}`} role="status">{feedMessage}</span>}
             </div>
           </div>
           <div className="events-feed__grid">

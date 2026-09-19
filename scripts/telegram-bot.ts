@@ -9,6 +9,7 @@ import {
   startEventDraft,
   TELEGRAM_EVENT_COMMANDS,
   type EventDraft,
+  type EventReplyKeyboardMode,
   type ParsedEvent,
 } from "../src/lib/telegram-event";
 import type { EventsPageData, FeaturedEvent } from "../src/lib/events";
@@ -41,11 +42,11 @@ async function telegramRequest<T>(method: string, body: Record<string, unknown> 
   return payload.result as T;
 }
 
-async function sendMessage(chatId: number, text: string, isDraftActive = false) {
+async function sendMessage(chatId: number, text: string, mode: EventReplyKeyboardMode = "idle") {
   await telegramRequest("sendMessage", {
     chat_id: chatId,
     text,
-    reply_markup: eventReplyKeyboard(isDraftActive),
+    reply_markup: eventReplyKeyboard(mode),
   });
 }
 
@@ -130,7 +131,12 @@ async function handleUpdate(update: TelegramUpdate) {
   const text = message.text.trim();
 
   if (/^\/start(?:@\w+)?\b/i.test(text)) {
-    await sendMessage(message.chat.id, "Бот подключён. Нажмите кнопку /event, чтобы создать мероприятие пошагово.");
+    await sendMessage(message.chat.id, "✨ Бот ФОРУМ подключён.\n\nНажмите /event, чтобы создать мероприятие пошагово.");
+    return;
+  }
+
+  if (/^\/(?:help|помощь)(?:@\w+)?\b/i.test(text)) {
+    await sendMessage(message.chat.id, "Команды ФОРУМ:\n\n/event — создать мероприятие\n/cancel — отменить текущий ввод\n/help — показать эту подсказку");
     return;
   }
 
@@ -144,7 +150,7 @@ async function handleUpdate(update: TelegramUpdate) {
   if (/^\/event(?:@\w+)?\s*$/i.test(text)) {
     const draft = startEventDraft();
     await writeDraft(message.chat.id, draft);
-    await sendMessage(message.chat.id, `Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, true);
+    await sendMessage(message.chat.id, `✨ Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, "draft");
     return;
   }
 
@@ -152,11 +158,15 @@ async function handleUpdate(update: TelegramUpdate) {
   if (draft) {
     const advance = advanceEventDraft(draft, text);
     if (advance.kind === "complete") {
-      await writeDraft(message.chat.id, null);
-      await publishEvent(message.chat.id, advance.parsed);
+      try {
+        await publishEvent(message.chat.id, advance.parsed);
+        await writeDraft(message.chat.id, null);
+      } catch (error) {
+        await sendMessage(message.chat.id, `Не удалось опубликовать мероприятие: ${error instanceof Error ? error.message : "неизвестная ошибка"}\n\nЧерновик сохранён. Нажмите «Опубликовать», чтобы повторить.`, "confirm");
+      }
     } else {
       await writeDraft(message.chat.id, advance.draft);
-      await sendMessage(message.chat.id, advance.message, true);
+      await sendMessage(message.chat.id, advance.message, advance.draft.step === "confirm" ? "confirm" : "draft");
     }
     return;
   }

@@ -11,6 +11,7 @@ import {
   startEventDraft,
   TELEGRAM_EVENT_COMMANDS,
   type EventDraft,
+  type EventReplyKeyboardMode,
   type ParsedEvent,
 } from "@/lib/telegram-event";
 
@@ -106,11 +107,11 @@ async function writeEventDraft(chatId: number, draft: EventDraft | null) {
   await db.telegramState.deleteMany({ where: { key } });
 }
 
-async function sendBotMessage(chatId: number, text: string, isDraftActive = false) {
+async function sendBotMessage(chatId: number, text: string, mode: EventReplyKeyboardMode = "idle") {
   await telegramBotRequest("sendMessage", {
     chat_id: chatId,
     text,
-    reply_markup: eventReplyKeyboard(isDraftActive),
+    reply_markup: eventReplyKeyboard(mode),
   });
 }
 
@@ -312,7 +313,11 @@ export async function syncTelegramBot() {
 
     const text = message.text.trim();
     if (/^\/start(?:@\w+)?\b/i.test(text)) {
-      await sendBotMessage(message.chat.id, "Бот подключён. Нажмите кнопку /event, чтобы создать мероприятие пошагово.");
+      await sendBotMessage(message.chat.id, "✨ Бот ФОРУМ подключён.\n\nНажмите /event, чтобы создать мероприятие пошагово.");
+      continue;
+    }
+    if (/^\/(?:help|помощь)(?:@\w+)?\b/i.test(text)) {
+      await sendBotMessage(message.chat.id, "Команды ФОРУМ:\n\n/event — создать мероприятие\n/cancel — отменить текущий ввод\n/help — показать эту подсказку");
       continue;
     }
 
@@ -326,7 +331,7 @@ export async function syncTelegramBot() {
     if (/^\/event(?:@\w+)?\s*$/i.test(text)) {
       const draft = startEventDraft();
       await writeEventDraft(message.chat.id, draft);
-      await sendBotMessage(message.chat.id, `Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, true);
+      await sendBotMessage(message.chat.id, `✨ Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, "draft");
       continue;
     }
 
@@ -339,7 +344,7 @@ export async function syncTelegramBot() {
         await sendBotMessage(message.chat.id, `Событие обновлено на сайте:\n${event.title}\n${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
       } else {
         await writeEventDraft(message.chat.id, advance.draft);
-        await sendBotMessage(message.chat.id, advance.message, true);
+        await sendBotMessage(message.chat.id, advance.message, advance.draft.step === "confirm" ? "confirm" : "draft");
       }
       continue;
     }
