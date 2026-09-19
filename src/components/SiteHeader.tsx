@@ -1,7 +1,7 @@
 import { Menu, X } from "lucide-react";
 import { useState, type MouseEvent } from "react";
 import { brand } from "@/lib/brand";
-import { scrollToElement } from "@/lib/scroll";
+import { getPageAnchorId, scrollToElement } from "@/lib/scroll";
 
 type SiteHeaderProps = {
   dark?: boolean;
@@ -32,12 +32,14 @@ export function SiteHeader({ dark = false }: SiteHeaderProps) {
   const muted = dark ? "text-[#FBF8F3]/65" : "text-[#241D14]/65";
 
   const handleAnchorClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (!href.startsWith("#") || href.startsWith("#/")) return;
-    const target = document.getElementById(href.slice(1));
+    if (!href.startsWith("#")) return;
+    const anchorId = getPageAnchorId(href);
+    if (!anchorId) return;
+    const target = document.getElementById(anchorId);
     if (!target) return;
 
     event.preventDefault();
-    window.history.pushState({}, "", href);
+    window.history.pushState({}, "", `#${anchorId}`);
     scrollToElement(target);
   };
 

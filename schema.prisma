@@ -61,6 +61,16 @@ model EventRegistration {
   @@index([eventId, createdAt])
 }
 
+model ContactRequest {
+  id        String   @id @default(cuid())
+  fullName  String
+  phone     String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model TelegramState {
   key       String   @id
   value     String

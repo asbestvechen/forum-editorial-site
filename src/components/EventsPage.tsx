@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Send, Sparkles } from "lucide-react";
-import { apiClient } from "@adaptive-ai/sdk/client";
+import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Sparkles } from "lucide-react";
+import { RegistrationModal } from "@/components/RegistrationModal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { brand } from "@/lib/brand";
 import {
@@ -12,26 +12,7 @@ import {
   type FeaturedEvent,
   type TelegramPost,
 } from "@/lib/events";
-
-type EventsApi = {
-  createEventRegistration: (input: { fullName: string; phone: string; eventId?: string }) => Promise<{ id: string; notification: string }>;
-};
-
-const api = apiClient<EventsApi>();
-
-async function submitRegistration(input: { fullName: string; phone: string; eventId?: string }) {
-  const response = await fetch("./api/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-  if (response.ok) return response.json() as Promise<{ id: string; notification: string }>;
-  if (response.status !== 404) {
-    const payload = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(payload?.error ?? "Не удалось отправить заявку");
-  }
-  return api.createEventRegistration(input);
-}
+import { formatRussianPhone, submitRegistration } from "@/lib/registration";
 
 function formatEventDate(event: FeaturedEvent | null) {
   if (!event) return null;
@@ -131,7 +112,7 @@ function PostCard({ post, index }: { post: TelegramPost; index: number }) {
   );
 }
 
-function FeaturedEvent({ event }: { event: FeaturedEvent | null }) {
+function FeaturedEvent({ event, onRegister }: { event: FeaturedEvent | null; onRegister: () => void }) {
   const date = formatEventDate(event);
   if (!event || !date) {
     return (
@@ -165,9 +146,9 @@ function FeaturedEvent({ event }: { event: FeaturedEvent | null }) {
           <span><MapPin size={15} strokeWidth={1.4} /> {event.location}</span>
         </div>
       </div>
-      <a className="editorial-button" href="#registration">
+      <button className="editorial-button editorial-button--event-register" type="button" onClick={onRegister}>
         Записаться <ArrowUpRight size={16} strokeWidth={1.4} />
-      </a>
+      </button>
     </div>
   );
 }
@@ -184,7 +165,7 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
     setState("submitting");
     setError("");
     try {
-      await submitRegistration({ fullName, phone, eventId: event.id });
+      await submitRegistration({ fullName, phone, eventId: event.id, event });
       setState("success");
       setFullName("");
       setPhone("");
@@ -198,7 +179,7 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
     <section id="registration" className={`events-registration ${!event ? "events-registration--closed" : ""}`}>
       <div className="events-registration__intro">
         <p className="events-kicker">Личная встреча</p>
-        <h2>{event ? "Забронируйте место" : "Запись откроется здесь"}</h2>
+        <h2>{event ? "Забронируйте место на мероприятие" : "Запись откроется здесь"}</h2>
         <p>{event ? "Оставьте имя и телефон — мы подтвердим участие и пришлём детали встречи." : "Когда ближайшее мероприятие будет опубликовано, форма записи станет активной."}</p>
       </div>
       {event ? (
@@ -216,10 +197,10 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
             </label>
             <label>
               <span>Номер телефона</span>
-              <input value={phone} onChange={(eventChange) => setPhone(eventChange.target.value)} name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="+7 900 000 00 00" />
+              <input value={phone} onChange={(eventChange) => setPhone(formatRussianPhone(eventChange.target.value))} name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="+7 (900) 000-00-00" />
             </label>
-            <button className="editorial-button" type="submit" disabled={state === "submitting"}>
-              {state === "submitting" ? "Отправляем…" : "Записаться"} <Send size={15} strokeWidth={1.4} />
+            <button className="editorial-button editorial-button--light" type="submit" disabled={state === "submitting"}>
+              {state === "submitting" ? "Отправляем…" : "Записаться"}
             </button>
             {state === "error" && <p className="events-registration__error" role="alert">{error}</p>}
             <p className="events-registration__note">Нажимая кнопку, вы соглашаетесь на обработку контактных данных.</p>
@@ -237,6 +218,7 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
 
 export function EventsPage() {
   const [pageData, setPageData] = useState<EventsPageData>(fallbackEventsPage);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const posts = useMemo(() => pageData.posts.slice(0, 12), [pageData.posts]);
 
   useEffect(() => {
@@ -273,7 +255,7 @@ export function EventsPage() {
         </section>
 
         <section className="events-featured-section max-w-[1400px] mx-auto px-6 md:px-12 pb-24">
-          <FeaturedEvent event={pageData.featuredEvent} />
+           <FeaturedEvent event={pageData.featuredEvent} onRegister={() => setRegistrationOpen(true)} />
         </section>
 
         <section className="events-feed max-w-[1400px] mx-auto px-6 md:px-12 pb-24">
@@ -299,7 +281,7 @@ export function EventsPage() {
             <p className="events-kicker">Всё самое свежее</p>
             <h2>Оставайтесь<br /><em>на связи</em></h2>
           </div>
-          <a className="editorial-button editorial-button--dark" href="https://t.me/salon4room" target="_blank" rel="noreferrer">
+          <a className="editorial-button editorial-button--telegram" href="https://t.me/salon4room" target="_blank" rel="noreferrer">
             Открыть Telegram <ArrowUpRight size={16} strokeWidth={1.4} />
           </a>
         </section>
@@ -310,6 +292,7 @@ export function EventsPage() {
           <a href={brand.phoneHref}>{brand.phone}</a>
         </div>
       </footer>
+      <RegistrationModal event={pageData.featuredEvent} open={registrationOpen} onClose={() => setRegistrationOpen(false)} />
     </div>
   );
 }

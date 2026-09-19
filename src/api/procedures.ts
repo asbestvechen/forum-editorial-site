@@ -2,13 +2,21 @@ import { db } from "@/api/db";
 import { env } from "@/lib/env";
 import { fetchTelegramPreview, TELEGRAM_CHANNEL_URL } from "@/api/telegram";
 import type { EventPostCategory, FeaturedEvent, EventsPageData, TelegramPost } from "@/lib/events";
-import { EVENT_TIMEZONE, parseEventCommand } from "@/lib/telegram-event";
-import { mcp } from "@adaptive-ai/sdk/server";
-import { readFile, readdir } from "node:fs/promises";
-import { resolve } from "node:path";
+import {
+  advanceEventDraft,
+  eventDraftPrompt,
+  eventReplyKeyboard,
+  EVENT_TIMEZONE,
+  parseEventCommand,
+  startEventDraft,
+  TELEGRAM_EVENT_COMMANDS,
+  type EventDraft,
+  type ParsedEvent,
+} from "@/lib/telegram-event";
 
 const TELEGRAM_FEED_SYNC_KEY = "telegram_feed_last_synced_at";
 const TELEGRAM_UPDATE_OFFSET_KEY = "telegram_bot_update_offset";
+const TELEGRAM_EVENT_DRAFT_PREFIX = "telegram_event_draft:";
 
 function serializePost(post: {
   id: string;
@@ -70,6 +78,56 @@ async function telegramBotRequest<T>(method: string, body: Record<string, unknow
   return payload.result as T;
 }
 
+type TelegramEventMessage = {
+  chat: { id: number; type: string };
+  text?: string;
+};
+
+function eventDraftKey(chatId: number) {
+  return `${TELEGRAM_EVENT_DRAFT_PREFIX}${chatId}`;
+}
+
+async function readEventDraft(chatId: number) {
+  const state = await getState(eventDraftKey(chatId));
+  if (!state) return null;
+  try {
+    return JSON.parse(state.value) as EventDraft;
+  } catch {
+    return null;
+  }
+}
+
+async function writeEventDraft(chatId: number, draft: EventDraft | null) {
+  const key = eventDraftKey(chatId);
+  if (draft) {
+    await setState(key, JSON.stringify(draft));
+    return;
+  }
+  await db.telegramState.deleteMany({ where: { key } });
+}
+
+async function sendBotMessage(chatId: number, text: string, isDraftActive = false) {
+  await telegramBotRequest("sendMessage", {
+    chat_id: chatId,
+    text,
+    reply_markup: eventReplyKeyboard(isDraftActive),
+  });
+}
+
+async function ensureTelegramCommandMenu() {
+  await telegramBotRequest("setMyCommands", { commands: TELEGRAM_EVENT_COMMANDS });
+}
+
+async function publishDatabaseEvent(parsed: ParsedEvent) {
+  const existing = await db.event.findFirst({
+    where: { isPublished: true, startsAt: { gte: new Date() } },
+    orderBy: { startsAt: "asc" },
+  });
+  return existing
+    ? db.event.update({ where: { id: existing.id }, data: { ...parsed, displayTimezone: EVENT_TIMEZONE, isPublished: true } })
+    : db.event.create({ data: { ...parsed, displayTimezone: EVENT_TIMEZONE, isPublished: true } });
+}
+
 async function notifyRegistration(event: FeaturedEvent, fullName: string, phone: string) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_NOTIFY_CHAT_ID) return "not_configured" as const;
   await telegramBotRequest("sendMessage", {
@@ -84,6 +142,29 @@ async function notifyRegistration(event: FeaturedEvent, fullName: string, phone:
   });
   return "sent" as const;
 }
+
+async function notifyContactRequest(fullName: string, phone: string) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_NOTIFY_CHAT_ID) return "not_configured" as const;
+  await telegramBotRequest("sendMessage", {
+    chat_id: env.TELEGRAM_NOTIFY_CHAT_ID,
+    text: [
+      "Новая заявка на обратную связь",
+      "",
+      `Имя: ${fullName}`,
+      `Телефон: ${phone}`,
+    ].join("\n"),
+  });
+  return "sent" as const;
+}
+
+function validateContactInput(input: { fullName: string; phone: string }) {
+  const fullName = input.fullName.trim().replace(/\s+/g, " ");
+  const phone = input.phone.trim();
+  if (fullName.length < 3) throw new Error("Укажите имя и фамилию");
+  if (!/^[+\d][\d\s()-]{9,}$/.test(phone)) throw new Error("Укажите корректный номер телефона");
+  return { fullName, phone };
+}
+
 
 export async function health() {
   return {
@@ -147,18 +228,48 @@ export async function syncTelegramFeed() {
   return { synced: posts.length, syncedAt };
 }
 
-export async function createEventRegistration(input: { fullName: string; phone: string; eventId?: string }) {
-  const fullName = input.fullName.trim().replace(/\s+/g, " ");
-  const phone = input.phone.trim();
-  if (fullName.length < 3) throw new Error("Укажите имя и фамилию");
-  if (!/^[+\d][\d\s()-]{9,}$/.test(phone)) throw new Error("Укажите корректный номер телефона");
-  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_NOTIFY_CHAT_ID) {
-    throw new Error("Запись временно недоступна — попробуйте связаться с салоном по телефону");
-  }
+export async function createEventRegistration(input: {
+  fullName: string;
+  phone: string;
+  eventId?: string;
+  event?: FeaturedEvent;
+}) {
+  const { fullName, phone } = validateContactInput(input);
 
-  const event = input.eventId
+  let event = input.eventId
     ? await db.event.findUnique({ where: { id: input.eventId } })
-    : await db.event.findFirst({ where: { isPublished: true, startsAt: { gte: new Date() } }, orderBy: { startsAt: "asc" } });
+    : null;
+  if (!event && input.event) {
+    const startsAt = new Date(input.event.startsAt);
+    if (Number.isNaN(startsAt.getTime())) throw new Error("Не удалось определить дату мероприятия");
+    event = await db.event.upsert({
+      where: { id: input.event.id },
+      update: {
+        title: input.event.title,
+        startsAt,
+        displayTimezone: input.event.displayTimezone,
+        location: input.event.location,
+        description: input.event.description,
+        capacity: input.event.capacity ?? null,
+        imageUrl: input.event.imageUrl ?? null,
+        isPublished: true,
+      },
+      create: {
+        id: input.event.id,
+        title: input.event.title,
+        startsAt,
+        displayTimezone: input.event.displayTimezone,
+        location: input.event.location,
+        description: input.event.description,
+        capacity: input.event.capacity ?? null,
+        imageUrl: input.event.imageUrl ?? null,
+        isPublished: true,
+      },
+    });
+  }
+  if (!event) {
+    event = await db.event.findFirst({ where: { isPublished: true, startsAt: { gte: new Date() } }, orderBy: { startsAt: "asc" } });
+  }
   if (!event || !event.isPublished || event.startsAt < new Date()) throw new Error("Регистрация на мероприятие пока не открыта");
 
   if (event.capacity) {
@@ -171,12 +282,20 @@ export async function createEventRegistration(input: { fullName: string; phone: 
   return { id: registration.id, notification };
 }
 
+export async function createContactRequest(input: { fullName: string; phone: string }) {
+  const { fullName, phone } = validateContactInput(input);
+  const request = await db.contactRequest.create({ data: { fullName, phone } });
+  const notification = await notifyContactRequest(fullName, phone);
+  return { id: request.id, notification };
+}
+
 export async function syncTelegramBot() {
   if (!env.TELEGRAM_BOT_TOKEN) return { status: "not_configured" as const, processed: 0 };
+  await ensureTelegramCommandMenu();
   const offset = Number((await getState(TELEGRAM_UPDATE_OFFSET_KEY))?.value ?? "0");
   type TelegramUpdate = {
     update_id: number;
-    message?: { chat: { id: number; type: string }; text?: string };
+    message?: TelegramEventMessage;
   };
   const updates = await telegramBotRequest<TelegramUpdate[]>("getUpdates", {
     offset,
@@ -188,85 +307,55 @@ export async function syncTelegramBot() {
     await setState(TELEGRAM_UPDATE_OFFSET_KEY, String(update.update_id + 1));
     processed += 1;
     const message = update.message;
-    if (!message?.text || !/^\/event(?:@\w+)?\b/i.test(message.text)) continue;
+    if (!message?.text) continue;
     if (env.TELEGRAM_ADMIN_CHAT_ID && String(message.chat.id) !== env.TELEGRAM_ADMIN_CHAT_ID) continue;
-    const parsed = parseEventCommand(message.text);
-    if (!parsed) {
-      await telegramBotRequest("sendMessage", {
-        chat_id: message.chat.id,
-        text: "Не смог разобрать событие. Нужны поля: Название, Дата, Время, Место, Описание и необязательно Лимит.",
-      });
+
+    const text = message.text.trim();
+    if (/^\/start(?:@\w+)?\b/i.test(text)) {
+      await sendBotMessage(message.chat.id, "Бот подключён. Нажмите кнопку /event, чтобы создать мероприятие пошагово.");
       continue;
     }
-    const existing = await db.event.findFirst({
-      where: { isPublished: true, startsAt: { gte: new Date() } },
-      orderBy: { startsAt: "asc" },
-    });
-    const event = existing
-      ? await db.event.update({ where: { id: existing.id }, data: { ...parsed, displayTimezone: EVENT_TIMEZONE, isPublished: true } })
-      : await db.event.create({ data: { ...parsed, displayTimezone: EVENT_TIMEZONE } });
-    await telegramBotRequest("sendMessage", {
-      chat_id: message.chat.id,
-      text: `Событие обновлено на сайте:\n${event.title}\n${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`,
-    });
+
+    if (/^(?:\/cancel|отмена)$/i.test(text)) {
+      const hadDraft = await readEventDraft(message.chat.id);
+      await writeEventDraft(message.chat.id, null);
+      await sendBotMessage(message.chat.id, hadDraft ? "Создание мероприятия отменено. Нажмите /event, чтобы начать заново." : "Сейчас нет активного создания мероприятия.");
+      continue;
+    }
+
+    if (/^\/event(?:@\w+)?\s*$/i.test(text)) {
+      const draft = startEventDraft();
+      await writeEventDraft(message.chat.id, draft);
+      await sendBotMessage(message.chat.id, `Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, true);
+      continue;
+    }
+
+    const draft = await readEventDraft(message.chat.id);
+    if (draft) {
+      const advance = advanceEventDraft(draft, text);
+      if (advance.kind === "complete") {
+        const event = await publishDatabaseEvent(advance.parsed);
+        await writeEventDraft(message.chat.id, null);
+        await sendBotMessage(message.chat.id, `Событие обновлено на сайте:\n${event.title}\n${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
+      } else {
+        await writeEventDraft(message.chat.id, advance.draft);
+        await sendBotMessage(message.chat.id, advance.message, true);
+      }
+      continue;
+    }
+
+    if (!/^\/event(?:@\w+)?\b/i.test(text)) continue;
+    const parsed = parseEventCommand(text);
+    if (!parsed) {
+      await sendBotMessage(message.chat.id, "Не смог разобрать событие. Нажмите /event и заполните поля по очереди.");
+      continue;
+    }
+    if (parsed.startsAt <= new Date()) {
+      await sendBotMessage(message.chat.id, "Дата мероприятия должна быть в будущем. Формат даты: ДД.ММ.ГГГГ, например 27.09.2026.");
+      continue;
+    }
+    const event = await publishDatabaseEvent(parsed);
+    await sendBotMessage(message.chat.id, `Событие обновлено на сайте:\n${event.title}\n${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
   }
   return { status: "ok" as const, processed };
-}
-
-// One-time maintainer helper for publishing the generated standalone export.
-export async function publishTelegramExport(input: { connectionToken: string; owner: string; repo: string }) {
-  const githubBase = `https://api.github.com/repos/${input.owner}/${input.repo}`;
-  const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
-  const request = async <T>(url: string, method: string, body?: unknown) => {
-    const response = await mcp.connectedApiRequest({ connectionToken: input.connectionToken, url, method, headers, body });
-    if (response.status < 200 || response.status >= 300) throw new Error(`GitHub request failed (${response.status})`);
-    return response.body as T;
-  };
-  type Ref = { object: { sha: string } };
-  type Commit = { tree: { sha: string } };
-  type GitObject = { sha: string; html_url?: string };
-  const ref = await request<Ref>(`${githubBase}/git/ref/heads/main`, "GET");
-  const current = await request<Commit>(`${githubBase}/git/commits/${ref.object.sha}`, "GET");
-  const root = process.cwd();
-  const assetNames = (await readdir(resolve(root, "dist/assets"))).filter((name) => /^index-.*\.(js|css)$/.test(name));
-  const textFiles = [
-    "APP.md", "package.json", "schema.prisma", "src/api/procedures.ts", "src/api/telegram.ts",
-    "src/components/EventsPage.tsx", "src/index.css", "src/lib/events.ts", "scripts/sync-telegram.ts",
-    "scripts/telegram-bot.ts", "scripts/standalone-server.ts", "public/events.json", "dist/events.json",
-    "dist/index.html", ...assetNames.map((name) => `dist/assets/${name}`),
-  ];
-  const exportedEvents = JSON.parse(await readFile(resolve(root, "public/events.json"), "utf8")) as { posts?: Array<{ imageUrls?: string[]; imageUrl?: string | null }> };
-  const imageNames = new Set(["phonitura-business-breakfast.jpg"]);
-  for (const post of exportedEvents.posts ?? []) {
-    for (const imageUrl of post.imageUrls ?? (post.imageUrl ? [post.imageUrl] : [])) {
-      const match = imageUrl.match(/(?:^|\/)(telegram-[^/]+\.(?:jpg|png|webp))$/);
-      if (match) imageNames.add(match[1]);
-    }
-  }
-  const imageEntries = await Promise.all(Array.from(imageNames).map(async (name) => {
-    const blob = await request<GitObject>(`${githubBase}/git/blobs`, "POST", {
-      content: await readFile(resolve(root, `public/images/events/${name}`), "base64"),
-      encoding: "base64",
-    });
-    return { path: `images/events/${name}`, mode: "100644", type: "blob", sha: blob.sha };
-  }));
-  const tree = await request<GitObject>(`${githubBase}/git/trees`, "POST", {
-    base_tree: current.tree.sha,
-    tree: [
-      ...await Promise.all(textFiles.map(async (relativePath) => ({
-        path: relativePath.startsWith("dist/") ? relativePath.slice("dist/".length) : relativePath,
-        mode: "100644",
-        type: "blob",
-        content: await readFile(resolve(root, relativePath), "utf8"),
-      }))),
-      ...imageEntries,
-    ],
-  });
-  const commit = await request<GitObject>(`${githubBase}/git/commits`, "POST", {
-    message: "Remove technical status from events feed",
-    tree: tree.sha,
-    parents: [ref.object.sha],
-  });
-  await request(`${githubBase}/git/refs/heads/main`, "PATCH", { sha: commit.sha, force: false });
-  return { commit: commit.sha, url: commit.html_url ?? null, images: imageEntries.length };
 }

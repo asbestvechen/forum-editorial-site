@@ -7,6 +7,13 @@ export const brand = {
   email: "4room.salon@gmail.com",
   address: "г. Екатеринбург, ул. Хохрякова, 18, 1 этаж",
   hours: "Пн–Пт 10:00–19:00",
+  directContact: {
+    name: "Макс",
+    phone: "8 904 179 15 08",
+    phoneHref: "tel:+79041791508",
+    telegram: "@mko_vv",
+    telegramHref: "https://t.me/mko_vv",
+  },
 };
 
 export type Category = {
@@ -61,6 +68,57 @@ export const brandLogoSlugs: Record<string, string> = {
   "Tom Dixon": "tom-dixon",
 };
 
+// Official brand/factory sites used by the clickable supplier chips in the direction drawer.
+// Generic labels such as «Европа» or «Собственная монтажная бригада» intentionally remain plain text.
+export const brandWebsiteUrls: Record<string, string> = {
+  Coswick: "https://coswick.com/",
+  Egger: "https://www.egger.com/",
+  "Lab Arte": "https://lab-arte.ru/",
+  Karelia: "https://www.kareliafloors.com/",
+  UNION: "https://union.ru/",
+  "Академия дверей": "https://academydverey.ru/",
+  Estet: "https://estetdoors.ru/",
+  Tupai: "https://www.tupai.pt/",
+  Aprile: "https://www.aprile.com/",
+  ORAC: "https://www.oracdecor.com/",
+  EUROPLAST: "https://europlast.lv/",
+  "Emil Group": "https://www.emilgroup.com/",
+  "Living Ceramic": "https://www.livingceramics.com/",
+  "Iris FMG": "https://www.irisceramica.com/",
+  Florim: "https://www.florim.com/",
+  Neodom: "https://neodom.ru/",
+  WOW: "https://wowdesigneu.com/",
+  "41zero42": "https://www.41zero42.com/",
+  "Kerama Marazzi": "https://www.kerama-marazzi.com/",
+  Italon: "https://italon.ru/",
+  "Atlas Concord": "https://www.atlasconcorde.com/",
+  TECE: "https://www.tece.com/",
+  BOHEME: "https://boheme.ru/",
+  HANSGROHE: "https://www.hansgrohe.com/",
+  GESSI: "https://www.gessi.com/",
+  CEA: "https://www.ceadesign.it/",
+  ARBI: "https://www.arbiarredobagno.it/",
+  Pianca: "https://www.pianca.com/",
+  Minotti: "https://www.minotti.com/",
+  Baxter: "https://www.baxter.it/",
+  "Poltrona Frau": "https://www.poltronafrau.com/",
+  Technolight: "https://technolight.ru/",
+  Aledo: "https://aledo.ru/",
+  Lumitex: "https://lumitex.ru/",
+  ArteLamp: "https://artelamp.ru/",
+  Maytoni: "https://maytoni.ru/",
+  Denkirs: "https://denkirs.ru/",
+  Karman: "https://www.karmanitalia.it/",
+  Vibia: "https://www.vibia.com/",
+  Flos: "https://flos.com/",
+  Foscarini: "https://www.foscarini.com/",
+  Bocci: "https://www.bocci.com/",
+  "Ingo Maurer": "https://www.ingo-maurer.com/",
+  Italamp: "https://www.italamp.com/",
+  Moooi: "https://moooi.com/",
+  "Tom Dixon": "https://www.tomdixon.net/",
+};
+
 export type TeamMember = {
   name: string;
   role: string;
@@ -72,13 +130,12 @@ export type TeamMember = {
 };
 
 export const teamDepartments = [
-  "Напольные покрытия",
-  "Двери и фурнитура",
+  "Напольные покрытия, двери и фурнитура",
+  "Развитие",
   "Керамогранит и сантехническое оборудование",
-  "Корпусная и мягкая мебель",
+  "Корпусная и мягкая мебель, кухни",
   "Технический, декоративный свет",
   "Текстиль, ткани и шторы",
-  "Кухни",
   "Логистика",
 ] as const;
 
@@ -108,7 +165,7 @@ export const categories: Category[] = [
     slug: "flooring",
     title: "Напольные покрытия",
     desc: "Паркет, массивная доска, инженерная доска и ламинат",
-    details: "Что можем предложить: паркет, инженерную доску, массивную доску, ламинат, кварц-винил, ковры и коммерческий линолеум — всё в одном месте. Мы — официальные представители брендов Coswick, Egger, Lab Arte и Karelia. Для точного расчёта нужны план помещения с размерами и визуал проекта; подготовим комплектацию, смету и сроки поставки.",
+    details: "Паркет, инженерная доска, массивная доска, ламинат, кварц-винил, ковры и коммерческий линолеум — всё в одном месте. Мы — официальные представители брендов Coswick, Egger, Lab Arte и Karelia. Для точного расчёта нужны план помещения с размерами и визуал проекта; подготовим комплектацию, смету и сроки поставки.",
     image: "./images/directions/flooring.webp",
     brandLabel: "Представляем",
     brands: ["Coswick", "Egger", "Lab Arte", "Karelia"],
@@ -149,10 +206,19 @@ export const categories: Category[] = [
     ],
   },
   {
+    slug: "mouldings",
+    title: "Лепнина и молдинги",
+    desc: "Декоративные профили, карнизы и панели для цельного интерьера",
+    details: "Лепнина и молдинги ORAC и EUROPLAST — декоративные профили, карнизы, панели и элементы для классических и современных интерьеров. Подберём решение под стиль помещения, рассчитаем количество и комплектующие, организуем доставку и монтаж.",
+    image: "./images/directions/mouldings.webp",
+    brandLabel: "Бренды",
+    brands: ["ORAC", "EUROPLAST"],
+  },
+  {
     slug: "furniture",
     title: "Корпусная и мягкая мебель",
     desc: "Мебель по индивидуальным проектам, кабинеты и гардеробные",
-    details: "Проектируем корпусную мебель, кабинеты, библиотеки и гардеробные по вашим размерам, а мягкую мебель подбираем под конкретную гостиную или спальню. Для гардеробных используем фирменное программное обеспечение Pianca. Работаем напрямую с итальянскими фабриками Minotti, Baxter, Poltrona Frau и другими производителями; большое количество образцов в салоне можно увидеть и потрогать.",
+    details: "Проектируем корпусную мебель, кабинеты и гардеробные по вашим размерам, а мягкую мебель подбираем под конкретную гостиную или спальню. Работаем напрямую с итальянскими фабриками Pianca, Minotti, Baxter, Poltrona Frau и другими производителями; большое количество образцов в салоне можно увидеть и потрогать.",
     image: "./images/directions/furniture.webp",
     brandLabel: "Фабрики",
     brands: ["Pianca", "Minotti", "Baxter", "Poltrona Frau"],
@@ -186,7 +252,7 @@ export const categories: Category[] = [
     slug: "textile",
     title: "Текстиль, ткани и шторы",
     desc: "Фактурные ткани, портьеры и решения для мягкого света",
-    details: "Большой выбор тканей для штор из Европы, Китая и Турции — от классики до современных фактур. Сделаем шторы под ключ по вашим размерам и эскизам, добавим электрокарнизы и профессиональную развеску на объекте. Мебельные ткани и обои подберём в единой стилистике.",
+    details: "Большой выбор тканей для штор из Европы, Китая и Турции — от классики до современных фактур. Сделаем шторы под ключ по вашим размерам и эскизам, добавим электрокарнизы и профессиональную развеску на объекте. Подберём мебельные ткани, обои и ковры в единой стилистике, а также предложим акустические решения PHONITURA и бамбуковые панели.",
     image: "./images/directions/curtains.webp",
     brandLabel: "Поставщики тканей",
     brands: ["Европа", "Китай", "Турция"],
@@ -208,8 +274,8 @@ export const advantages = [
     desc: "Работаем напрямую с производителями Италии, Испании, Германии и Португалии",
   },
   {
-    title: "Консультация дизайнера",
-    desc: "Бесплатная консультация декоратора перед покупкой",
+    title: "Консультация специалиста",
+    desc: "Бесплатная консультация специалиста перед покупкой",
   },
   {
     title: "Индивидуальные проекты",
@@ -225,30 +291,30 @@ export const teamImage = "./images/team/team.webp";
 
 export const teamMembers: TeamMember[] = [
   {
-    name: "Анна Воронцова",
-    role: "Арт-директор",
-    departments: ["Корпусная и мягкая мебель"],
-    department: "Кураторство и стиль",
-    bio: "Формирует визуальный язык ФОРУМА, отбирает коллекции и собирает из разрозненных предметов цельные интерьерные истории.",
-    focus: "Подбор коллекций · Концепции · Стилистика",
+    name: "Антон Костромин",
+    role: "Руководитель напольных покрытий и дверей",
+    departments: ["Напольные покрытия, двери и фурнитура"],
+    department: "Напольные покрытия и двери",
+    bio: "Отвечает за направление напольных покрытий, дверей и фурнитуры — помогает собрать цельное решение под архитектуру и характер интерьера.",
+    focus: "Напольные покрытия · Двери · Фурнитура",
     image: "./images/team/team-1.webp",
   },
   {
-    name: "Михаил Лебедев",
-    role: "Руководитель проектов",
-    departments: ["Логистика"],
-    department: "Комплектация интерьеров",
-    bio: "Ведёт проекты от первого эскиза до поставки: синхронизирует фабрики, сроки и монтаж, чтобы сложные решения собирались спокойно и точно.",
-    focus: "Проекты · Логистика · Авторский надзор",
+    name: "Юлия Александрова",
+    role: "Директор по развитию",
+    departments: ["Развитие"],
+    department: "Развитие ФОРУМА",
+    bio: "Развивает ФОРУМ и партнёрские отношения, соединяя сильные коллекции, команды и проекты вокруг внимательного отношения к интерьеру.",
+    focus: "Развитие · Партнёрства · Проекты",
     image: "./images/team/team-2.webp",
   },
   {
-    name: "Елена Соколова",
-    role: "Дизайнер-консультант",
-    departments: ["Технический, декоративный свет"],
-    department: "Свет и текстиль",
-    bio: "Помогает найти правильное настроение пространства через свет, ткани и тактильные материалы — от первого визита в салон до финальной примерки.",
-    focus: "Световые сценарии · Ткани · Консультации",
+    name: "Наталья Сурнина",
+    role: "Руководитель отдела текстиля",
+    departments: ["Текстиль, ткани и шторы"],
+    department: "Текстиль, ткани и шторы",
+    bio: "Ведёт текстильное направление и помогает подобрать ткани, шторы и фактуры, которые собирают интерьер в цельную, живую историю.",
+    focus: "Ткани · Шторы · Текстильные решения",
     image: "./images/team/team-3.webp",
   },
 ];

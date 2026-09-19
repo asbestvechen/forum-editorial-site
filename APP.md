@@ -9,14 +9,15 @@
 ## What It Does
 
 - Editorial landing page with a restrained cream, walnut, charcoal, and gold visual system, using Montserrat throughout; the hero uses a clean desktop two-column composition with copy on the left and a warm light editorial color grade of the original interior photograph on the right, stacking only on tablet/mobile.
-- Navigation for Направления, О нас, Наша команда, События, Контакты; the Events route is available at `#/events`.
-- Equal-height directions gallery with a touch-friendly horizontal strip on mobile that no longer traps the page's vertical scroll, preserving the original seven service categories; a horizontal swipe advances exactly one card with smooth snapping, while the detail drawer exposes a scrollable chip list with local brand marks and text fallbacks for the full known partner/factory list.
+- Navigation for Направления, О нас, Наша команда, События, Контакты; the Events route is available at `#/events`, while legacy `#/directions` and `#/about` hashes are normalized to the home-page anchors.
+- Equal-height directions gallery with a touch-friendly horizontal strip on mobile that no longer traps the page's vertical scroll, now covering eight service categories including лепнина и молдинги; a horizontal swipe advances exactly one card with smooth snapping, while the detail drawer exposes clickable supplier chips that open official brand/factory sites in a new tab where a URL is known.
 - Mobile Editorial hero uses a vertical full-screen interior photo with an animated cream headline panel entering from the bottom; supporting copy and CTAs remain in normal flow immediately below the image.
 - Wide responsive direction detail drawer: on desktop it uses a two-column image/text composition so the title and description are visible immediately; on mobile it becomes a full-height sheet with the same content, accessible keyboard/backdrop controls, and left/right swipe navigation.
-- Team route at `#/team` with a split editorial hero, department filters for the seven directions plus Logistics, a filtered vertical staff roster, and one active profile spread instead of a card grid; the three individual portraits are curated 560×820 WebP assets with cache-busted URLs.
-- Events route at `#/events` with a warm editorial event announcement, a Telegram-derived post feed, a registration form collecting name and phone, and a Telegram channel CTA. Each post is rendered as an interactive gallery using every exported photo from its Telegram media group; no post content is hand-authored in the UI.
+- Team route at `#/team` with a split editorial hero and a single team-level contact footer; department filters and individual employee profile cards are intentionally removed.
+- Events route at `#/events` with a warm editorial event announcement, a Telegram-derived post feed, a registration form collecting name and phone, and a Telegram channel CTA. Each post is rendered as an interactive gallery using every exported photo from its Telegram media group; no post content is hand-authored in the UI. The featured event CTA opens the event-registration modal, while the home hero and footer open the contact modal with direct phone/Telegram links for Макс.
+- Shared editorial button variants keep the home hero, event registration, Telegram, and contact actions coherent across desktop and mobile: calm outline/warm-paper treatments for secondary actions, a light-on-dark treatment for forms, and a single stronger dark CTA for the featured event.
 - Interactive Yandex map embed for г. Екатеринбург, ул. Хохрякова, 18.
-- Lightweight front end: local WebP photography, lazy-loaded below-the-fold images, cinematic title/image reveal masks, restrained cursor-responsive hero tilt and spotlight, desktop sequential card reveals with an immediate all-card reveal on mobile, Lenis-powered inertial wheel scrolling with touch-safe horizontal cards, smooth hash navigation with sticky-header offset, reduced-motion fallback, metadata, and LocalBusiness JSON-LD.
+- Lightweight front end: local WebP photography, lazy-loaded below-the-fold images, cinematic title/image reveal masks, restrained cursor-responsive hero tilt and spotlight, viewport-triggered group reveal for the full directions grid, Lenis-powered inertial wheel scrolling with touch-safe horizontal cards, numeric smooth hash navigation with a clear sticky-header gap, reduced-motion fallback, metadata, and LocalBusiness JSON-LD.
 
 ## Main Files
 
@@ -26,17 +27,19 @@
 - `src/lib/brand.ts`: single source of truth for brand, contacts, directions, partner/factory lists, advantages, and placeholder team content.
 - `src/lib/scroll.ts`: global Lenis lifecycle plus anchor/top scrolling helpers.
 - `src/components/DirectionDrawer.tsx`: accessible responsive detail drawer for the existing direction cards.
-- `src/components/EventsPage.tsx`: editorial Events page, static Telegram export, interactive post galleries, featured-event block, and registration form.
+- `src/components/EventsPage.tsx`: editorial Events page, static Telegram export, interactive post galleries, featured-event block, registration form, and modal trigger.
+- `src/components/RegistrationModal.tsx` and `src/lib/registration.ts`: shared event/contact modal flows, Russian phone formatting, direct contact links, and environment-aware submission (public Adaptive endpoint for GitHub Pages, local Adaptive/standalone fallback).
+- `src/api/server.ts`: CORS-enabled public `POST /api/register` route for both event registrations and contact requests; the Adaptive app must have “Share via link” enabled for anonymous GitHub Pages submissions.
 - `src/api/telegram.ts`: public `t.me/s/salon4room` parser, grouped-photo extraction, and deterministic post categorization/title/excerpt formatting.
-- `src/api/procedures.ts`: Events page query, idempotent feed sync, registration storage/notification hook, and `/event` bot command handler.
+- `src/api/procedures.ts`: Events page query, idempotent feed sync, event/contact request storage and notification hooks, event hydration from the static export, and the interactive `/event` bot handler with per-chat draft state.
 - `scripts/sync-telegram.ts`: standalone export command; downloads every current public Telegram photo locally, preserves the existing featured event, and writes `public/events.json`.
-- `scripts/telegram-bot.ts`: standalone long-polling bot; `/event` updates `public/events.json` without Adaptive or GitHub.
+- `scripts/telegram-bot.ts`: standalone long-polling bot; the `/event` wizard updates `public/events.json` without Adaptive or GitHub, while retaining the legacy multi-line command format.
 - `scripts/standalone-server.ts`: optional Node server for serving `dist`, live `events.json`, and Telegram-backed registration submissions.
 - `public/events.json`: generated, real Telegram content snapshot; do not edit manually, regenerate with `npm run sync:telegram`.
-- `schema.prisma` and `migrations/20260903210000_events_telegram/`: Telegram posts, featured events, registrations, and sync state.
+- `schema.prisma` and `migrations/20260903210000_events_telegram/`, `migrations/20260904100432_auto/`: Telegram posts, featured events, registrations, contact requests, and sync state.
 - `public/images/events/phonitura-business-breakfast.jpg`: supplied PHONITURA poster kept as optional event artwork.
 - `public/images/directions/`: curated 4:5 WebP editorial interiors used inside the existing direction categories, unified around the brighter warm-white, pale oak, limestone, textile, charcoal, and muted brass palette of the original series.
-- `public/images/team/`: temporary AI-generated team photography; replace these files later while preserving dimensions/filenames.
+- `public/images/team/team.webp`: temporary AI-generated group hero image for the team-level page; individual portrait assets remain available for future use but are not rendered in the current team tab.
 - `public/images/brands/`: locally cached 128px brand marks sourced from public brand domains via favicon endpoints; unsupported or unnamed suppliers use a text-only wordmark fallback.
 
 ## Brand Assets
@@ -61,15 +64,29 @@ Real client content was taken from the old site (salon4room.ru) and updated for 
 
 - Share the app URL with the client for visual approval.
 - Replace placeholder team images and copy in `src/lib/brand.ts` when the real materials are ready.
-- Add the real event details through the bot `/event` format and connect the manager recipient chat before enabling live registration notifications.
+- Add the real event details through the bot's `/event` wizard (or the retained multi-line format) and connect the manager recipient chat before enabling live registration notifications.
 - For independent hosting, run `npm run sync:telegram` before each build, serve `dist` with `npm run serve:standalone`, and run `npm run bot:telegram` alongside it with `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, and `TELEGRAM_NOTIFY_CHAT_ID`.
-- GitHub Pages is only a static mirror; it now contains a generated real Telegram export rather than hand-written fallback posts. The independent hosting commands do not require Adaptive or GitHub at runtime.
+- GitHub Pages is only a static mirror; it now contains a generated real Telegram export rather than hand-written fallback posts. Registration from that mirror calls the Adaptive app's public `on.adaptive.ai/api/register` endpoint, while independent hosting uses the local `/api/register` route. The independent hosting commands do not require Adaptive or GitHub at runtime.
 
-## Standalone Telegram Workflow
+## Telegram Event Workflow
 
 1. Create or rotate the bot token in `@BotFather` and set `TELEGRAM_BOT_TOKEN` on the host.
 2. Start `npm run bot:telegram`; the bot uses long polling and does not need to be an administrator of `@salon4room` for manager commands.
-3. In a private chat with the bot, press Start and send:
+3. In a private chat with the bot, press Start and press the persistent `/event` button (also available in the Telegram command menu).
+4. Answer the prompts in order:
+
+   ```text
+   Название мероприятия?
+   Дата? — ДД.ММ.ГГГГ
+   Время? — ЧЧ:ММ
+   Место?
+   Описание мероприятия?
+   Лимит участников? — число или «пропустить»
+   ```
+
+   The `Отмена` button or `/cancel` clears the current draft. Drafts are isolated by Telegram chat: the standalone bot keeps them in `data/telegram-event-drafts.json`, while Adaptive cron keeps them in `TelegramState`.
+
+5. The retained multi-line format is also accepted:
 
    ```text
    /event
@@ -82,8 +99,8 @@ Real client content was taken from the old site (salon4room.ru) and updated for 
    Лимит: 25
    ```
 
-4. The bot validates that the date is in the future, writes `public/events.json`, updates `dist/events.json` when present, and confirms the new event in Telegram.
-5. Run `npm run serve:standalone` to serve the site and registration endpoint. Set `TELEGRAM_NOTIFY_CHAT_ID` so form submissions are sent to the manager.
+6. The bot validates that the date is in the future, writes `public/events.json` (or the Prisma `Event` record in Adaptive), updates `dist/events.json` when present, and confirms the new event in Telegram.
+7. Run `npm run serve:standalone` to serve the site and registration endpoint. Set `TELEGRAM_NOTIFY_CHAT_ID` so form submissions are sent to the manager.
 
 ## Known Environment Quirk (for future agents)
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { ArrowDown, ArrowUpRight, MapPin } from "lucide-react";
 import { DirectionDrawer } from "@/components/DirectionDrawer";
+import { RegistrationModal } from "@/components/RegistrationModal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { advantages, brand, categories, lightImages } from "@/lib/brand";
 import type { Category } from "@/lib/brand";
@@ -45,6 +46,7 @@ export function VariantEditorial() {
   const directionPointerRef = useRef<DirectionPointerState | null>(null);
   const suppressDirectionClickRef = useRef(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [contactOpen, setContactOpen] = useState(false);
   const closeDrawer = useCallback(() => setSelectedCategory(null), []);
 
   useEffect(() => {
@@ -54,32 +56,49 @@ export function VariantEditorial() {
     root.classList.add("editorial-motion-ready");
     const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-reveal]"));
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
     const directionCards = targets.filter((target) => target.classList.contains("editorial-direction-card"));
+    const standardTargets = targets.filter((target) => !target.classList.contains("editorial-direction-card"));
+    const directionScroller = directionScrollerRef.current;
 
     if (reducedMotion || !("IntersectionObserver" in window)) {
       targets.forEach((target) => target.classList.add("is-visible"));
       return () => root.classList.remove("editorial-motion-ready");
     }
 
-    if (isMobile) {
+    const revealDirectionCards = () => {
       directionCards.forEach((card) => card.classList.add("is-visible"));
-    }
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-visible");
+          if (entry.target === directionScroller) {
+            revealDirectionCards();
+          } else {
+            entry.target.classList.add("is-visible");
+          }
           observer.unobserve(entry.target);
         });
       },
       { rootMargin: "0px 0px -12% 0px", threshold: 0.12 },
     );
 
-    targets
-      .filter((target) => !isMobile || !target.classList.contains("editorial-direction-card"))
-      .forEach((target) => observer.observe(target));
+    standardTargets.forEach((target) => observer.observe(target));
+    if (directionScroller) observer.observe(directionScroller);
+
+    standardTargets.forEach((target) => {
+      const bounds = target.getBoundingClientRect();
+      if (bounds.bottom > 0 && bounds.top < window.innerHeight && bounds.right > 0 && bounds.left < window.innerWidth) {
+        target.classList.add("is-visible");
+      }
+    });
+    if (directionScroller) {
+      const bounds = directionScroller.getBoundingClientRect();
+      if (bounds.bottom > 0 && bounds.top < window.innerHeight && bounds.right > 0 && bounds.left < window.innerWidth) {
+        revealDirectionCards();
+      }
+    }
     return () => {
       observer.disconnect();
       root.classList.remove("editorial-motion-ready");
@@ -184,15 +203,16 @@ export function VariantEditorial() {
               сроки поставки и возможность реализовать самые сложные проекты.
             </p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <a href="#directions" className="editorial-button inline-flex items-center gap-3 px-8 py-4 bg-[#241D14] text-[#FBF8F3] text-sm uppercase tracking-[0.15em] hover:bg-[#C98A12] transition-colors duration-300">
+              <a href="#directions" className="editorial-button editorial-button--outline">
                 Смотреть направления <ArrowDown size={16} strokeWidth={1.5} />
               </a>
-              <a
-                href="#contacts"
-                className="text-sm uppercase tracking-[0.15em] border-b border-[#241D14]/30 pb-1 hover:border-[#C98A12] hover:text-[#C98A12] transition-colors"
+              <button
+                type="button"
+                onClick={() => setContactOpen(true)}
+                className="editorial-button editorial-button--hero-register"
               >
-                Оставить заявку
-              </a>
+                Связаться <ArrowUpRight size={16} strokeWidth={1.5} />
+              </button>
             </div>
           </div>
         </div>
@@ -230,8 +250,8 @@ export function VariantEditorial() {
       </section>
 
       {/* Directions — structure borrowed from Dark Luxury, colors remain Editorial */}
-      <section id="directions" className="editorial-directions max-w-[1400px] mx-auto px-6 md:px-12 py-16 md:py-24 scroll-mt-24">
-        <div className="editorial-scroll-reveal flex items-end justify-between mb-12" data-reveal>
+      <section className="editorial-directions max-w-[1400px] mx-auto px-6 md:px-12 py-16 md:py-24 scroll-mt-24">
+        <div id="directions" className="editorial-scroll-reveal flex items-end justify-between mb-12 scroll-mt-24" data-reveal>
           <h2 className="font-display text-4xl md:text-5xl">Направления</h2>
           <p className="hidden md:block text-sm text-[#241D14]/50 max-w-xs text-right">
             Полный спектр решений для комплектации интерьера
@@ -262,7 +282,6 @@ export function VariantEditorial() {
                 }
                 setSelectedCategory(category);
               }}
-              style={{ transitionDelay: `${Math.min(index * 70, 420)}ms` }}
             >
               <img
                 src={category.image}
@@ -357,7 +376,7 @@ export function VariantEditorial() {
               новым клиентам
             </h2>
             <p className="text-[#FBF8F3]/60 max-w-sm leading-relaxed">
-              Приходите в салон или оставьте заявку — наш дизайнер свяжется с
+              Приходите в салон или оставьте заявку — наш специалист свяжется с
               вами и поможет подобрать решение под ваш интерьер.
             </p>
           </div>
@@ -378,7 +397,7 @@ export function VariantEditorial() {
               <span className="text-[#FBF8F3]/50 uppercase tracking-wide text-xs">Часы работы</span>
               <span>{brand.hours}</span>
             </div>
-            <a href={`mailto:${brand.email}?subject=Заявка%20в%20ФОРУМ`} className="editorial-button inline-flex items-center justify-center gap-3 mt-3 px-8 py-4 bg-[#C98A12] text-[#FBF8F3] text-sm uppercase tracking-[0.15em] hover:bg-[#FBF8F3] hover:text-[#241D14] transition-colors duration-300">Оставить заявку <ArrowUpRight size={16} strokeWidth={1.5} /></a>
+            <button type="button" onClick={() => setContactOpen(true)} className="editorial-button editorial-button--contact">Оставить контакт <ArrowUpRight size={16} strokeWidth={1.5} /></button>
           </div>
         </div>
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 pb-8 text-xs text-[#FBF8F3]/40">
@@ -391,6 +410,7 @@ export function VariantEditorial() {
         onClose={closeDrawer}
         onSelect={setSelectedCategory}
       />
+      <RegistrationModal mode="contact" open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );
 }

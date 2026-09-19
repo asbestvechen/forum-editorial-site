@@ -1,6 +1,16 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { EVENT_TIMEZONE, parseEventCommand } from "../src/lib/telegram-event";
+import {
+  advanceEventDraft,
+  eventDraftPrompt,
+  eventReplyKeyboard,
+  EVENT_TIMEZONE,
+  parseEventCommand,
+  startEventDraft,
+  TELEGRAM_EVENT_COMMANDS,
+  type EventDraft,
+  type ParsedEvent,
+} from "../src/lib/telegram-event";
 import type { EventsPageData, FeaturedEvent } from "../src/lib/events";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -10,12 +20,15 @@ const projectRoot = process.cwd();
 const eventsFile = resolve(projectRoot, process.env.EVENTS_FILE ?? "public/events.json");
 const distEventsFile = resolve(projectRoot, process.env.DIST_EVENTS_FILE ?? "dist/events.json");
 const offsetFile = resolve(projectRoot, process.env.TELEGRAM_OFFSET_FILE ?? "data/telegram-update-offset.txt");
+const draftsFile = resolve(projectRoot, process.env.TELEGRAM_DRAFTS_FILE ?? "data/telegram-event-drafts.json");
 const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
 
 type TelegramUpdate = {
   update_id: number;
   message?: { chat: { id: number }; text?: string };
 };
+
+type EventDraftStore = Record<string, EventDraft>;
 
 async function telegramRequest<T>(method: string, body: Record<string, unknown> = {}) {
   const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
@@ -28,8 +41,37 @@ async function telegramRequest<T>(method: string, body: Record<string, unknown> 
   return payload.result as T;
 }
 
-async function sendMessage(chatId: number, text: string) {
-  await telegramRequest("sendMessage", { chat_id: chatId, text });
+async function sendMessage(chatId: number, text: string, isDraftActive = false) {
+  await telegramRequest("sendMessage", {
+    chat_id: chatId,
+    text,
+    reply_markup: eventReplyKeyboard(isDraftActive),
+  });
+}
+
+async function setCommandMenu() {
+  await telegramRequest("setMyCommands", { commands: TELEGRAM_EVENT_COMMANDS });
+}
+
+async function readDrafts(): Promise<EventDraftStore> {
+  try {
+    return JSON.parse(await readFile(draftsFile, "utf8")) as EventDraftStore;
+  } catch {
+    return {};
+  }
+}
+
+async function readDraft(chatId: number) {
+  const drafts = await readDrafts();
+  return drafts[String(chatId)] ?? null;
+}
+
+async function writeDraft(chatId: number, draft: EventDraft | null) {
+  const drafts = await readDrafts();
+  if (draft) drafts[String(chatId)] = draft;
+  else delete drafts[String(chatId)];
+  await mkdir(resolve(draftsFile, ".."), { recursive: true });
+  await writeFile(draftsFile, `${JSON.stringify(drafts, null, 2)}\n`, "utf8");
 }
 
 async function readEvents(): Promise<EventsPageData> {
@@ -65,27 +107,7 @@ async function writeOffset(offset: number) {
   await writeFile(offsetFile, String(offset), "utf8");
 }
 
-async function handleUpdate(update: TelegramUpdate) {
-  const message = update.message;
-  if (!message?.text) return;
-  if (adminChatId && String(message.chat.id) !== adminChatId) return;
-
-  if (/^\/start(?:@\w+)?\b/i.test(message.text)) {
-    await sendMessage(message.chat.id, "Бот подключён. Для публикации мероприятия отправьте команду /event с полями Название, Дата, Время, Место, Описание и необязательно Лимит.");
-    return;
-  }
-  if (!/^\/event(?:@\w+)?\b/i.test(message.text)) return;
-
-  const parsed = parseEventCommand(message.text);
-  if (!parsed) {
-    await sendMessage(message.chat.id, "Не смог разобрать событие. Нужны поля: Название, Дата, Время, Место, Описание и необязательно Лимит.");
-    return;
-  }
-  if (parsed.startsAt <= new Date()) {
-    await sendMessage(message.chat.id, "Дата мероприятия должна быть в будущем. Формат даты: ДД.ММ.ГГГГ, например 27.09.2026.");
-    return;
-  }
-
+async function publishEvent(chatId: number, parsed: ParsedEvent) {
   const data = await readEvents();
   const featuredEvent: FeaturedEvent = {
     id: `telegram-event-${Date.now()}`,
@@ -98,11 +120,67 @@ async function handleUpdate(update: TelegramUpdate) {
     imageUrl: null,
   };
   await writeEvents({ ...data, featuredEvent, lastSyncedAt: new Date().toISOString() });
-  await sendMessage(message.chat.id, `Событие обновлено на сайте:\n${featuredEvent.title}\n${parsed.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
+  await sendMessage(chatId, `Событие обновлено на сайте:\n${featuredEvent.title}\n${parsed.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
+}
+
+async function handleUpdate(update: TelegramUpdate) {
+  const message = update.message;
+  if (!message?.text) return;
+  if (adminChatId && String(message.chat.id) !== adminChatId) return;
+  const text = message.text.trim();
+
+  if (/^\/start(?:@\w+)?\b/i.test(text)) {
+    await sendMessage(message.chat.id, "Бот подключён. Нажмите кнопку /event, чтобы создать мероприятие пошагово.");
+    return;
+  }
+
+  if (/^(?:\/cancel|отмена)$/i.test(text)) {
+    const hadDraft = await readDraft(message.chat.id);
+    await writeDraft(message.chat.id, null);
+    await sendMessage(message.chat.id, hadDraft ? "Создание мероприятия отменено. Нажмите /event, чтобы начать заново." : "Сейчас нет активного создания мероприятия.");
+    return;
+  }
+
+  if (/^\/event(?:@\w+)?\s*$/i.test(text)) {
+    const draft = startEventDraft();
+    await writeDraft(message.chat.id, draft);
+    await sendMessage(message.chat.id, `Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, true);
+    return;
+  }
+
+  const draft = await readDraft(message.chat.id);
+  if (draft) {
+    const advance = advanceEventDraft(draft, text);
+    if (advance.kind === "complete") {
+      await writeDraft(message.chat.id, null);
+      await publishEvent(message.chat.id, advance.parsed);
+    } else {
+      await writeDraft(message.chat.id, advance.draft);
+      await sendMessage(message.chat.id, advance.message, true);
+    }
+    return;
+  }
+
+  if (!/^\/event(?:@\w+)?\b/i.test(text)) return;
+  const parsed = parseEventCommand(text);
+  if (!parsed) {
+    await sendMessage(message.chat.id, "Не смог разобрать событие. Нажмите /event и заполните поля по очереди.");
+    return;
+  }
+  if (parsed.startsAt <= new Date()) {
+    await sendMessage(message.chat.id, "Дата мероприятия должна быть в будущем. Формат даты: ДД.ММ.ГГГГ, например 27.09.2026.");
+    return;
+  }
+  await publishEvent(message.chat.id, parsed);
 }
 
 async function main() {
   let offset = await readOffset();
+  try {
+    await setCommandMenu();
+  } catch (error) {
+    console.error(`[telegram] command menu setup failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
   console.log(`[telegram] bot polling started${adminChatId ? ` for chat ${adminChatId}` : ""}`);
   while (true) {
     try {

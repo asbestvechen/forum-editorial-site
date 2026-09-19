@@ -6,6 +6,7 @@ const publicSchema = z.object({
   VITE_ROOT_URL: z.url(),
   VITE_REALTIME_DOMAIN: z.string(),
   VITE_BOX_ID: z.string(),
+  VITE_REGISTRATION_API_URL: z.url().optional(),
   VITE_NODE_ENV: z.enum(["development", "production"]).default("development"),
 });
 
