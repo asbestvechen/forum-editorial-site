@@ -30,7 +30,7 @@
 - `src/components/EventsPage.tsx`: editorial Events page, static Telegram export, interactive post galleries, featured-event block, registration form, and modal trigger.
 - `src/components/RegistrationModal.tsx` and `src/lib/registration.ts`: shared event/contact modal flows, Russian phone formatting, direct contact links, and environment-aware submission (public Adaptive endpoint for GitHub Pages, local Adaptive/standalone fallback).
 - `src/api/server.ts`: CORS-enabled public `POST /api/register` route for both event registrations and contact requests; the Adaptive app must have “Share via link” enabled for anonymous GitHub Pages submissions.
-- `src/api/telegram.ts`: public `t.me/s/salon4room` parser, grouped-photo extraction, and deterministic post categorization/title/excerpt formatting.
+- `src/api/telegram.ts`: public `t.me/s/salon4room` parser, grouped-photo extraction, deterministic post categorization/title/excerpt formatting, and filtering for Telegram system-service posts such as pinned photos and profile/wallpaper updates.
 - `src/api/procedures.ts`: Events page query, idempotent feed sync, event/contact request storage and notification hooks, event hydration from the static export, and the interactive Telegram webhook handler with per-chat draft state.
 - `scripts/sync-telegram.ts`: standalone export command; downloads every current public Telegram photo locally, preserves the existing featured event, and writes `public/events.json`.
 - `scripts/telegram-bot.ts`: retained standalone Telegram long-polling bot for independent hosting; GitHub Actions no longer polls Telegram because the production bot uses the Adaptive webhook.

@@ -1,6 +1,6 @@
 import { db } from "@/api/db";
 import { env } from "@/lib/env";
-import { fetchTelegramPreview, TELEGRAM_CHANNEL_URL } from "@/api/telegram";
+import { fetchTelegramPreview, isTelegramSystemPost, TELEGRAM_CHANNEL_URL } from "@/api/telegram";
 import { mcp } from "@adaptive-ai/sdk/server";
 import type { EventPostCategory, FeaturedEvent, EventsPageData, TelegramPost } from "@/lib/events";
 import {
@@ -258,6 +258,11 @@ export async function syncTelegramFeed() {
         telegramUrl: post.telegramUrl,
       },
     });
+  }
+  const existingPosts = await db.telegramPost.findMany({ select: { id: true, text: true } });
+  const systemPostIds = existingPosts.filter((post) => isTelegramSystemPost(post.text)).map((post) => post.id);
+  if (systemPostIds.length > 0) {
+    await db.telegramPost.deleteMany({ where: { id: { in: systemPostIds } } });
   }
   const syncedAt = new Date().toISOString();
   await setState(TELEGRAM_FEED_SYNC_KEY, syncedAt);

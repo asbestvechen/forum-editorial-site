@@ -31,6 +31,20 @@ function cleanText(value: string) {
     .trim();
 }
 
+const telegramSystemPostPatterns = [
+  /\bpinned\s+(?:a\s+)?(?:photo|message|post|video)\b/i,
+  /\b(?:updated|changed)\s+(?:the\s+)?(?:profile\s+photo|chat\s+wallpaper|wallpaper|group\s+photo|channel\s+photo)\b/i,
+  /\b(?:channel|group|chat)\s+(?:updated|changed|set)\s+(?:its\s+)?(?:profile\s+photo|chat\s+wallpaper|wallpaper|photo)\b/i,
+  /\b(?:закрепил[аи]?|закреплено)\s+(?:фото|сообщение|пост|видео)\b/i,
+  /\b(?:обновил[аи]?|изменил[аи]?|сменил[аи]?)\s+(?:фото\s+профиля|обои|фото\s+канала|фото\s+группы)\b/i,
+  /\b(?:канал|группа|чат)\s+(?:обновил|изменил|сменил)\b/i,
+];
+
+export function isTelegramSystemPost(text: string) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  return normalized.length <= 240 && telegramSystemPostPatterns.some((pattern) => pattern.test(normalized));
+}
+
 function classifyPost(text: string): EventPostCategory {
   const value = text.toLocaleLowerCase("ru-RU");
   if (/мероприяти|бизнес[- ]завтрак|вечер|презентаци|встреч[аи]|мастер[- ]класс|аперол/.test(value)) return "event";
@@ -84,7 +98,7 @@ function parseMessageBlock(block: string): TelegramPost | null {
 
   const rawText = block.match(/<div class="tgme_widget_message_text[^>]*>([\s\S]*?)<\/div>/)?.[1] ?? "";
   const text = cleanText(rawText);
-  if (!text) return null;
+  if (!text || isTelegramSystemPost(text)) return null;
 
   const category = classifyPost(text);
   const photoTags = block.match(/<a\b[^>]*class="[^"]*tgme_widget_message_photo_wrap[^"]*"[^>]*>/gi) ?? [];
