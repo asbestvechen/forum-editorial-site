@@ -1,13 +1,13 @@
 import { db } from "@/api/db";
 import { env } from "@/lib/env";
 import { fetchTelegramPreview, TELEGRAM_CHANNEL_URL } from "@/api/telegram";
+import { mcp } from "@adaptive-ai/sdk/server";
 import type { EventPostCategory, FeaturedEvent, EventsPageData, TelegramPost } from "@/lib/events";
 import {
   advanceEventDraft,
   eventDraftPrompt,
   eventReplyKeyboard,
   EVENT_TIMEZONE,
-  parseEventCommand,
   startEventDraft,
   TELEGRAM_EVENT_COMMANDS,
   type EventDraft,
@@ -80,8 +80,20 @@ async function telegramBotRequest<T>(method: string, body: Record<string, unknow
 }
 
 type TelegramEventMessage = {
-  chat: { id: number; type: string };
+  chat: { id: number; type?: string };
   text?: string;
+};
+
+type TelegramUpdate = {
+  update_id: number;
+  message?: TelegramEventMessage;
+};
+
+export type TelegramWebhookResponse = {
+  method: "sendMessage";
+  chat_id: number;
+  text: string;
+  reply_markup: ReturnType<typeof eventReplyKeyboard>;
 };
 
 function eventDraftKey(chatId: number) {
@@ -107,12 +119,16 @@ async function writeEventDraft(chatId: number, draft: EventDraft | null) {
   await db.telegramState.deleteMany({ where: { key } });
 }
 
-async function sendBotMessage(chatId: number, text: string, mode: EventReplyKeyboardMode = "idle") {
+async function sendBotResponse(response: TelegramWebhookResponse) {
   await telegramBotRequest("sendMessage", {
-    chat_id: chatId,
-    text,
-    reply_markup: eventReplyKeyboard(mode),
+    chat_id: response.chat_id,
+    text: response.text,
+    reply_markup: response.reply_markup,
   });
+}
+
+function botMessage(chatId: number, text: string, mode: EventReplyKeyboardMode = "idle"): TelegramWebhookResponse {
+  return { method: "sendMessage", chat_id: chatId, text, reply_markup: eventReplyKeyboard(mode) };
 }
 
 async function ensureTelegramCommandMenu() {
@@ -156,6 +172,26 @@ async function notifyContactRequest(fullName: string, phone: string) {
     ].join("\n"),
   });
   return "sent" as const;
+}
+
+async function notifyByEmail(subject: string, body: string) {
+  if (!env.GMAIL_CONNECTION_TOKEN) return "not_configured" as const;
+  const response = await mcp.connectedApiRequest({
+    connectionToken: env.GMAIL_CONNECTION_TOKEN,
+    url: "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+    method: "POST",
+    body: { to: "asbestvechen@gmail.com", subject, body, isHtml: false },
+  });
+  if (response.status !== 200) throw new Error(`Gmail send failed: ${response.status}`);
+  return "sent" as const;
+}
+
+async function settleNotification(notification: Promise<string>) {
+  const result = await notification.then((value) => ({ status: "sent" as const, value })).catch((error) => ({
+    status: "failed" as const,
+    error: error instanceof Error ? error.message : "unknown error",
+  }));
+  return result;
 }
 
 function validateContactInput(input: { fullName: string; phone: string }) {
@@ -279,25 +315,145 @@ export async function createEventRegistration(input: {
   }
 
   const registration = await db.eventRegistration.create({ data: { eventId: event.id, fullName, phone } });
-  const notification = await notifyRegistration(serializeEvent(event), fullName, phone);
-  return { id: registration.id, notification };
+  const eventView = serializeEvent(event);
+  const [telegram, email] = await Promise.all([
+    settleNotification(notifyRegistration(eventView, fullName, phone)),
+    settleNotification(notifyByEmail(
+      `Новая заявка: ${event.title}`,
+      [
+        "Новая заявка на мероприятие ФОРУМ",
+        "",
+        `Мероприятие: ${event.title}`,
+        `Дата: ${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`,
+        `Имя: ${fullName}`,
+        `Телефон: ${phone}`,
+        `Получено: ${new Date().toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`,
+      ].join("\n"),
+    )),
+  ]);
+  return { id: registration.id, notification: { telegram, email } };
 }
 
 export async function createContactRequest(input: { fullName: string; phone: string }) {
   const { fullName, phone } = validateContactInput(input);
   const request = await db.contactRequest.create({ data: { fullName, phone } });
-  const notification = await notifyContactRequest(fullName, phone);
-  return { id: request.id, notification };
+  const [telegram, email] = await Promise.all([
+    settleNotification(notifyContactRequest(fullName, phone)),
+    settleNotification(notifyByEmail(
+      "Новая заявка на обратную связь",
+      [
+        "Новая заявка на обратную связь ФОРУМ",
+        "",
+        `Имя: ${fullName}`,
+        `Телефон: ${phone}`,
+        `Получено: ${new Date().toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`,
+      ].join("\n"),
+    )),
+  ]);
+  return { id: request.id, notification: { telegram, email } };
+}
+
+async function deleteCurrentEvent() {
+  const event = await db.event.findFirst({
+    where: { isPublished: true, startsAt: { gte: new Date() } },
+    orderBy: { startsAt: "asc" },
+  });
+  if (!event) return null;
+  await db.event.update({ where: { id: event.id }, data: { isPublished: false } });
+  return event;
+}
+
+async function formatCurrentRegistrations() {
+  const event = await db.event.findFirst({
+    where: { isPublished: true, startsAt: { gte: new Date() } },
+    orderBy: { startsAt: "asc" },
+  });
+  if (!event) return "Сейчас нет опубликованного мероприятия.";
+  const registrations = await db.eventRegistration.findMany({
+    where: { eventId: event.id, status: "new" },
+    orderBy: { createdAt: "asc" },
+  });
+  if (registrations.length === 0) return `Заявок пока нет.\n\nМероприятие: ${event.title}`;
+  const limit = event.capacity ? ` из ${event.capacity}` : "";
+  return [
+    `Заявки: ${registrations.length}${limit}`,
+    `Мероприятие: ${event.title}`,
+    "",
+    ...registrations.map((registration, index) => `${index + 1}. ${registration.fullName}\n   ${registration.phone}`),
+  ].join("\n");
+}
+
+async function handleTelegramMessage(message: TelegramEventMessage): Promise<TelegramWebhookResponse | null> {
+  if (!message.text) return null;
+  const adminChatId = env.TELEGRAM_ADMIN_CHAT_ID ?? env.TELEGRAM_NOTIFY_CHAT_ID;
+  if (adminChatId && String(message.chat.id) !== adminChatId) return null;
+
+  const chatId = message.chat.id;
+  const text = message.text.trim();
+  if (/^\/start(?:@\w+)?\b/i.test(text)) {
+    return botMessage(chatId, "✨ Бот ФОРУМ подключён.\n\nВыберите действие в меню ниже.");
+  }
+  if (/^\/(?:help|помощь)(?:@\w+)?\b/i.test(text)) {
+    return botMessage(chatId, "Выберите действие кнопкой ниже.\n\nСоздание мероприятия проходит пошагово, публикация — только после подтверждения.");
+  }
+  if (/^(?:\/cancel|отмена)$/i.test(text)) {
+    const hadDraft = await readEventDraft(chatId);
+    await writeEventDraft(chatId, null);
+    return botMessage(chatId, hadDraft ? "Создание мероприятия отменено." : "Сейчас нет активного создания мероприятия.");
+  }
+  if (/^(?:создать мероприятие|\/event(?:@\w+)?\s*)$/i.test(text)) {
+    const draft = startEventDraft();
+    await writeEventDraft(chatId, draft);
+    return botMessage(chatId, `✨ Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, "draft");
+  }
+  if (/^(?:удалить мероприятие|\/delete_event(?:@\w+)?\s*)$/i.test(text)) {
+    const event = await deleteCurrentEvent();
+    return botMessage(chatId, event ? `Мероприятие удалено с сайта:\n${event.title}` : "Опубликованных будущих мероприятий нет.");
+  }
+  if (/^(?:проверить заявки|\/applications(?:@\w+)?\s*)$/i.test(text)) {
+    return botMessage(chatId, await formatCurrentRegistrations());
+  }
+  if (/^(?:обновить посты|\/refresh(?:@\w+)?\s*)$/i.test(text)) {
+    try {
+      const sync = await syncTelegramFeed();
+      return botMessage(chatId, `✅ Лента обновлена.
+Загружено публикаций: ${sync.synced}.`);
+    } catch (error) {
+      return botMessage(chatId, `Не удалось обновить ленту: ${error instanceof Error ? error.message : "неизвестная ошибка"}`);
+    }
+  }
+
+  const draft = await readEventDraft(chatId);
+  if (draft) {
+    const advance = advanceEventDraft(draft, text);
+    if (advance.kind === "complete") {
+      try {
+        const event = await publishDatabaseEvent(advance.parsed);
+        await writeEventDraft(chatId, null);
+        return botMessage(chatId, `✅ Мероприятие опубликовано:\n${event.title}\n${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
+      } catch (error) {
+        return botMessage(chatId, `Не удалось опубликовать мероприятие: ${error instanceof Error ? error.message : "неизвестная ошибка"}\n\nЧерновик сохранён. Нажмите «Опубликовать», чтобы повторить.`, "confirm");
+      }
+    }
+    await writeEventDraft(chatId, advance.draft);
+    return botMessage(chatId, advance.message, advance.draft.step === "confirm" ? "confirm" : "draft");
+  }
+
+  if (/^\/event(?:@\w+)?\b/i.test(text)) {
+    return botMessage(chatId, "Используйте кнопку «Создать мероприятие» — так будет удобнее.");
+  }
+  return null;
+}
+
+export async function handleTelegramWebhookUpdate(update: TelegramUpdate) {
+  return update.message ? handleTelegramMessage(update.message) : null;
 }
 
 export async function syncTelegramBot() {
   if (!env.TELEGRAM_BOT_TOKEN) return { status: "not_configured" as const, processed: 0 };
+  if (env.TELEGRAM_WEBHOOK_SECRET) return { status: "webhook_active" as const, processed: 0 };
   await ensureTelegramCommandMenu();
   const offset = Number((await getState(TELEGRAM_UPDATE_OFFSET_KEY))?.value ?? "0");
-  type TelegramUpdate = {
-    update_id: number;
-    message?: TelegramEventMessage;
-  };
   const updates = await telegramBotRequest<TelegramUpdate[]>("getUpdates", {
     offset,
     timeout: 0,
@@ -306,61 +462,9 @@ export async function syncTelegramBot() {
   let processed = 0;
   for (const update of updates ?? []) {
     await setState(TELEGRAM_UPDATE_OFFSET_KEY, String(update.update_id + 1));
+    const response = update.message ? await handleTelegramMessage(update.message) : null;
+    if (response) await sendBotResponse(response);
     processed += 1;
-    const message = update.message;
-    if (!message?.text) continue;
-    if (env.TELEGRAM_ADMIN_CHAT_ID && String(message.chat.id) !== env.TELEGRAM_ADMIN_CHAT_ID) continue;
-
-    const text = message.text.trim();
-    if (/^\/start(?:@\w+)?\b/i.test(text)) {
-      await sendBotMessage(message.chat.id, "✨ Бот ФОРУМ подключён.\n\nНажмите /event, чтобы создать мероприятие пошагово.");
-      continue;
-    }
-    if (/^\/(?:help|помощь)(?:@\w+)?\b/i.test(text)) {
-      await sendBotMessage(message.chat.id, "Команды ФОРУМ:\n\n/event — создать мероприятие\n/cancel — отменить текущий ввод\n/help — показать эту подсказку");
-      continue;
-    }
-
-    if (/^(?:\/cancel|отмена)$/i.test(text)) {
-      const hadDraft = await readEventDraft(message.chat.id);
-      await writeEventDraft(message.chat.id, null);
-      await sendBotMessage(message.chat.id, hadDraft ? "Создание мероприятия отменено. Нажмите /event, чтобы начать заново." : "Сейчас нет активного создания мероприятия.");
-      continue;
-    }
-
-    if (/^\/event(?:@\w+)?\s*$/i.test(text)) {
-      const draft = startEventDraft();
-      await writeEventDraft(message.chat.id, draft);
-      await sendBotMessage(message.chat.id, `✨ Создаём новое мероприятие.\n\n${eventDraftPrompt(draft.step)}`, "draft");
-      continue;
-    }
-
-    const draft = await readEventDraft(message.chat.id);
-    if (draft) {
-      const advance = advanceEventDraft(draft, text);
-      if (advance.kind === "complete") {
-        const event = await publishDatabaseEvent(advance.parsed);
-        await writeEventDraft(message.chat.id, null);
-        await sendBotMessage(message.chat.id, `Событие обновлено на сайте:\n${event.title}\n${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
-      } else {
-        await writeEventDraft(message.chat.id, advance.draft);
-        await sendBotMessage(message.chat.id, advance.message, advance.draft.step === "confirm" ? "confirm" : "draft");
-      }
-      continue;
-    }
-
-    if (!/^\/event(?:@\w+)?\b/i.test(text)) continue;
-    const parsed = parseEventCommand(text);
-    if (!parsed) {
-      await sendBotMessage(message.chat.id, "Не смог разобрать событие. Нажмите /event и заполните поля по очереди.");
-      continue;
-    }
-    if (parsed.startsAt <= new Date()) {
-      await sendBotMessage(message.chat.id, "Дата мероприятия должна быть в будущем. Формат даты: ДД.ММ.ГГГГ, например 27.09.2026.");
-      continue;
-    }
-    const event = await publishDatabaseEvent(parsed);
-    await sendBotMessage(message.chat.id, `Событие обновлено на сайте:\n${event.title}\n${event.startsAt.toLocaleString("ru-RU", { timeZone: EVENT_TIMEZONE })}`);
   }
   return { status: "ok" as const, processed };
 }

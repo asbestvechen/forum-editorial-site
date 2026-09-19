@@ -30,6 +30,31 @@ export type EventsPageData = {
 	channelUrl: string;
 	lastSyncedAt: string | null;
 };
+export type EventReplyKeyboardMode = "idle" | "draft" | "confirm";
+declare function eventReplyKeyboard(mode?: EventReplyKeyboardMode | boolean): {
+	keyboard: {
+		text: string;
+	}[][];
+	resize_keyboard: boolean;
+	is_persistent: boolean;
+};
+export type TelegramEventMessage = {
+	chat: {
+		id: number;
+		type?: string;
+	};
+	text?: string;
+};
+export type TelegramUpdate = {
+	update_id: number;
+	message?: TelegramEventMessage;
+};
+export type TelegramWebhookResponse = {
+	method: "sendMessage";
+	chat_id: number;
+	text: string;
+	reply_markup: ReturnType<typeof eventReplyKeyboard>;
+};
 export declare function health(): Promise<{
 	status: string;
 	timestamp: string;
@@ -48,15 +73,46 @@ export declare function createEventRegistration(input: {
 	event?: FeaturedEvent;
 }): Promise<{
 	id: string;
-	notification: "not_configured" | "sent";
+	notification: {
+		telegram: {
+			status: "sent";
+			value: string;
+		} | {
+			status: "failed";
+			error: string;
+		};
+		email: {
+			status: "sent";
+			value: string;
+		} | {
+			status: "failed";
+			error: string;
+		};
+	};
 }>;
 export declare function createContactRequest(input: {
 	fullName: string;
 	phone: string;
 }): Promise<{
 	id: string;
-	notification: "not_configured" | "sent";
+	notification: {
+		telegram: {
+			status: "sent";
+			value: string;
+		} | {
+			status: "failed";
+			error: string;
+		};
+		email: {
+			status: "sent";
+			value: string;
+		} | {
+			status: "failed";
+			error: string;
+		};
+	};
 }>;
+export declare function handleTelegramWebhookUpdate(update: TelegramUpdate): Promise<TelegramWebhookResponse | null>;
 export declare function syncTelegramBot(): Promise<{
 	status: "not_configured";
 	processed: number;

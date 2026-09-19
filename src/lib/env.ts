@@ -20,6 +20,8 @@ const serverSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
   TELEGRAM_NOTIFY_CHAT_ID: z.string().min(1).optional(),
   TELEGRAM_ADMIN_CHAT_ID: z.string().min(1).optional(),
+  TELEGRAM_WEBHOOK_SECRET: z.string().min(16).optional(),
+  GMAIL_CONNECTION_TOKEN: z.string().min(1).optional(),
 });
 
 const schema = serverSchema.extend(publicSchema.shape);

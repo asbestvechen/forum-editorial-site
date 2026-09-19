@@ -31,9 +31,9 @@
 - `src/components/RegistrationModal.tsx` and `src/lib/registration.ts`: shared event/contact modal flows, Russian phone formatting, direct contact links, and environment-aware submission (public Adaptive endpoint for GitHub Pages, local Adaptive/standalone fallback).
 - `src/api/server.ts`: CORS-enabled public `POST /api/register` route for both event registrations and contact requests; the Adaptive app must have “Share via link” enabled for anonymous GitHub Pages submissions.
 - `src/api/telegram.ts`: public `t.me/s/salon4room` parser, grouped-photo extraction, and deterministic post categorization/title/excerpt formatting.
-- `src/api/procedures.ts`: Events page query, idempotent feed sync, event/contact request storage and notification hooks, event hydration from the static export, and the interactive `/event` bot handler with per-chat draft state.
+- `src/api/procedures.ts`: Events page query, idempotent feed sync, event/contact request storage and notification hooks, event hydration from the static export, and the interactive Telegram webhook handler with per-chat draft state.
 - `scripts/sync-telegram.ts`: standalone export command; downloads every current public Telegram photo locally, preserves the existing featured event, and writes `public/events.json`.
-- `scripts/telegram-bot.ts`: standalone long-polling bot; the `/event` wizard updates `public/events.json` without Adaptive or GitHub, while retaining the legacy multi-line command format.
+- `scripts/telegram-bot.ts`: retained standalone Telegram long-polling bot for independent hosting; GitHub Actions no longer polls Telegram because the production bot uses the Adaptive webhook.
 - `scripts/standalone-server.ts`: optional Node server for serving `dist`, live `events.json`, and Telegram-backed registration submissions.
 - `public/events.json`: generated, real Telegram content snapshot; do not edit manually, regenerate with `npm run sync:telegram`.
 - `schema.prisma` and `migrations/20260903210000_events_telegram/`, `migrations/20260904100432_auto/`: Telegram posts, featured events, registrations, contact requests, and sync state.
@@ -64,15 +64,15 @@ Real client content was taken from the old site (salon4room.ru) and updated for 
 
 - Share the app URL with the client for visual approval.
 - Replace placeholder team images and copy in `src/lib/brand.ts` when the real materials are ready.
-- Add the real event details through the bot's `/event` wizard (or the retained multi-line format) and connect the manager recipient chat before enabling live registration notifications.
+- Add the real event details through the bot's persistent Russian keyboard and connect the manager recipient chat before enabling live registration notifications.
 - For independent hosting, run `npm run sync:telegram` before each build, serve `dist` with `npm run serve:standalone`, and run `npm run bot:telegram` alongside it with `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, and `TELEGRAM_NOTIFY_CHAT_ID`.
-- GitHub Pages is only a static mirror; it now contains a generated real Telegram export rather than hand-written fallback posts. Registration from that mirror calls the Adaptive app's public `on.adaptive.ai/api/register` endpoint, while independent hosting uses the local `/api/register` route. The independent hosting commands do not require Adaptive or GitHub at runtime.
+- GitHub Pages is the public static surface and contains a generated real Telegram export rather than hand-written fallback posts. A GitHub Actions worker refreshes the public channel feed every five minutes and on manual dispatch, then commits changed feed exports. The manager bot uses the Adaptive webhook at `/api/telegram/webhook`, so button responses are immediate and no polling offset is needed. Registration from that mirror calls the Adaptive app's public `on.adaptive.ai/api/register` endpoint, while independent hosting uses the local `/api/register` route. Adaptive Telegram crons are disabled.
 
 ## Telegram Event Workflow
 
-1. Create or rotate the bot token in `@BotFather` and set `TELEGRAM_BOT_TOKEN` on the host.
-2. Start `npm run bot:telegram`; the bot uses long polling and does not need to be an administrator of `@salon4room` for manager commands.
-3. In a private chat with the bot, press Start and press the persistent `/event` button (also available in the Telegram command menu).
+1. Create or rotate the bot token in `@BotFather` and set `TELEGRAM_BOT_TOKEN` on the host. Set `TELEGRAM_WEBHOOK_SECRET` for the Adaptive webhook and `TELEGRAM_ADMIN_CHAT_ID` (or the configured notify chat) for manager access.
+2. Register Telegram's webhook at `https://4room-mockups-asbestvechen501008103.on.adaptive.ai/api/telegram/webhook` with the same secret. The GitHub workflow `.github/workflows/telegram-bot-poll.yml` is feed-only and must not call `getUpdates` while the webhook is active. For independent hosting, start `npm run bot:telegram` instead.
+3. In a private chat with the bot, press Start and use the persistent Russian keyboard: `Создать мероприятие`, `Обновить посты`, `Проверить заявки`, `Удалить мероприятие`.
 4. Answer the prompts in order:
 
    ```text
@@ -84,9 +84,9 @@ Real client content was taken from the old site (salon4room.ru) and updated for 
    Лимит участников? — число или «пропустить»
    ```
 
-   The `Отмена` button or `/cancel` clears the current draft. Drafts are isolated by Telegram chat: the standalone bot keeps them in `data/telegram-event-drafts.json`, while Adaptive cron keeps them in `TelegramState`.
+   The `Отмена` button or `/cancel` clears the current draft. Drafts are isolated by Telegram chat: the standalone bot keeps them in `data/telegram-event-drafts.json`, while the Adaptive webhook keeps them in `TelegramState`.
 
-5. The retained multi-line format is also accepted:
+5. The retained multi-line format is also accepted for compatibility:
 
    ```text
    /event
@@ -99,8 +99,8 @@ Real client content was taken from the old site (salon4room.ru) and updated for 
    Лимит: 25
    ```
 
-6. The bot validates that the date is in the future, writes `public/events.json` (or the Prisma `Event` record in Adaptive), updates `dist/events.json` when present, and confirms the new event in Telegram.
-7. Run `npm run serve:standalone` to serve the site and registration endpoint. Set `TELEGRAM_NOTIFY_CHAT_ID` so form submissions are sent to the manager.
+6. The bot validates that the date is in the future, stores the published event in the Adaptive database, and confirms it in Telegram. `Обновить посты` synchronously refreshes the Adaptive feed cache; the GitHub Actions feed job refreshes the static GitHub Pages export.
+7. Run `npm run serve:standalone` to serve the site and registration endpoint. Set `TELEGRAM_NOTIFY_CHAT_ID` so form submissions are sent to the manager, and connect Gmail before enabling email duplication.
 
 ## Known Environment Quirk (for future agents)
 

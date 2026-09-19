@@ -27,9 +27,9 @@ export type EventDraftAdvance =
   | { kind: "prompt"; draft: EventDraft; message: string }
   | { kind: "complete"; parsed: ParsedEvent };
 
-export const TELEGRAM_EVENT_COMMANDS = [
-  { command: "event", description: "Создать мероприятие" },
-];
+// Keep Telegram's command menu empty: the persistent Russian reply keyboard is
+// the primary admin interface and should not be replaced by slash commands.
+export const TELEGRAM_EVENT_COMMANDS: Array<{ command: string; description: string }> = [];
 
 export function eventReplyKeyboard(mode: EventReplyKeyboardMode | boolean = "idle") {
   const resolvedMode: EventReplyKeyboardMode = typeof mode === "boolean" ? (mode ? "draft" : "idle") : mode;
@@ -38,7 +38,7 @@ export function eventReplyKeyboard(mode: EventReplyKeyboardMode | boolean = "idl
       ? [[{ text: "Опубликовать" }], [{ text: "Изменить" }, { text: "Отмена" }]]
       : resolvedMode === "draft"
         ? [[{ text: "Отмена" }]]
-        : [[{ text: "/event" }]],
+        : [[{ text: "Создать мероприятие" }], [{ text: "Обновить посты" }], [{ text: "Проверить заявки" }, { text: "Удалить мероприятие" }]],
     resize_keyboard: true,
     is_persistent: true,
   };

@@ -34,6 +34,7 @@ const publicApiHeaders = {
 app.options("/api/register", () => new Response(null, { status: 204, headers: publicApiHeaders }));
 app.options("/api/events", () => new Response(null, { status: 204, headers: publicApiHeaders }));
 app.options("/api/events/sync", () => new Response(null, { status: 204, headers: publicApiHeaders }));
+app.options("/api/telegram/webhook", () => new Response(null, { status: 204, headers: publicApiHeaders }));
 
 app.get("/api/events", async (context) => {
   try {
@@ -75,6 +76,22 @@ app.post("/api/register", async (context) => {
     return context.json(result, 200, publicApiHeaders);
   } catch (error) {
     return context.json({ error: error instanceof Error ? error.message : "Не удалось отправить заявку" }, 400, publicApiHeaders);
+  }
+});
+
+app.post("/api/telegram/webhook", async (context) => {
+  const expectedSecret = env.TELEGRAM_WEBHOOK_SECRET;
+  const receivedSecret = context.req.header("x-telegram-bot-api-secret-token");
+  if (expectedSecret && receivedSecret !== expectedSecret) {
+    return context.json({ error: "Unauthorized" }, 401, publicApiHeaders);
+  }
+  try {
+    const update = await context.req.json();
+    const response = await procedures.handleTelegramWebhookUpdate(update);
+    return context.json(response ?? { ok: true }, 200, publicApiHeaders);
+  } catch (error) {
+    console.error("Telegram webhook error", error);
+    return context.json({ ok: true }, 200, publicApiHeaders);
   }
 });
 

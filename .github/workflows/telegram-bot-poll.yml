@@ -1,4 +1,4 @@
-name: Poll 4ROOM Telegram bot
+name: Sync 4ROOM Telegram feed
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  poll:
+  sync:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -30,24 +30,6 @@ jobs:
         env:
           ADAPTIVE_AI_REGISTRY: https://registry.npmjs.org/
 
-      - name: Restore private bot state
-        uses: actions/cache/restore@v4
-        with:
-          path: bot-state
-          key: telegram-bot-state-${{ github.run_id }}
-          restore-keys: telegram-bot-state-
-
-      - name: Poll Telegram updates once
-        run: npx tsx scripts/telegram-bot.ts
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
-          TELEGRAM_ONCE: "true"
-          TELEGRAM_OFFSET_FILE: bot-state/telegram-update-offset.txt
-          TELEGRAM_DRAFTS_FILE: bot-state/telegram-event-drafts.json
-          EVENTS_FILE: public/events.json
-          DIST_EVENTS_FILE: public/events.json
-
       - name: Refresh Telegram feed export
         run: npx tsx scripts/sync-telegram.ts
 
@@ -57,21 +39,14 @@ jobs:
           mkdir -p images/events
           cp -a public/images/events/. images/events/
 
-      - name: Commit changed feed and event
+      - name: Commit changed feed
         run: |
           git config user.name "4ROOM Telegram Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add events.json public/events.json public/images/events images/events
-           if git diff --cached --quiet; then
+          if git diff --cached --quiet; then
             echo "No Telegram updates"
           else
-            git commit -m "Process Telegram bot updates"
+            git commit -m "Sync Telegram feed"
             git push
           fi
-
-
-      - name: Save private bot state
-        uses: actions/cache/save@v4
-        with:
-          path: bot-state
-          key: telegram-bot-state-${{ github.run_id }}
