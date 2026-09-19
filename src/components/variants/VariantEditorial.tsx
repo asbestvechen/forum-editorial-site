@@ -6,45 +6,10 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { advantages, brand, categories, lightImages } from "@/lib/brand";
 import type { Category } from "@/lib/brand";
 
-type DirectionPointerState = {
-  pointerId: number;
-  startX: number;
-  startY: number;
-  startScrollLeft: number;
-  startIndex: number;
-  dragging: boolean;
-};
-
-const DIRECTION_SWIPE_TRIGGER = 28;
-
-function getDirectionCards(scroller: HTMLDivElement) {
-  return Array.from(scroller.querySelectorAll<HTMLElement>(".editorial-direction-card"));
-}
-
-function getNearestDirectionIndex(cards: HTMLElement[], scrollLeft: number) {
-  return cards.reduce((nearestIndex, card, index) => {
-    const nearestDistance = Math.abs(cards[nearestIndex].offsetLeft - scrollLeft);
-    const currentDistance = Math.abs(card.offsetLeft - scrollLeft);
-    return currentDistance < nearestDistance ? index : nearestIndex;
-  }, 0);
-}
-
-function snapToDirectionCard(scroller: HTMLDivElement, index: number) {
-  const cards = getDirectionCards(scroller);
-  if (!cards.length) return;
-  const targetIndex = Math.max(0, Math.min(index, cards.length - 1));
-  scroller.scrollTo({
-    left: cards[targetIndex].offsetLeft,
-    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-  });
-}
-
 // Variant 1 — the approved Editorial concept, kept intentionally close to the original mockup.
 export function VariantEditorial() {
   const motionRootRef = useRef<HTMLDivElement>(null);
   const directionScrollerRef = useRef<HTMLDivElement>(null);
-  const directionPointerRef = useRef<DirectionPointerState | null>(null);
-  const suppressDirectionClickRef = useRef(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
   const closeDrawer = useCallback(() => setSelectedCategory(null), []);
@@ -127,54 +92,6 @@ export function VariantEditorial() {
     hero.style.setProperty("--hero-shift-y", "0px");
     hero.style.setProperty("--hero-focus-x", "50%");
     hero.style.setProperty("--hero-focus-y", "50%");
-  };
-
-  const handleDirectionPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!event.isPrimary || (event.pointerType !== "touch" && event.pointerType !== "pen")) return;
-    const scroller = event.currentTarget;
-    const cards = getDirectionCards(scroller);
-    directionPointerRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      startScrollLeft: scroller.scrollLeft,
-      startIndex: cards.length ? getNearestDirectionIndex(cards, scroller.scrollLeft) : 0,
-      dragging: false,
-    };
-    scroller.setPointerCapture(event.pointerId);
-  };
-
-  const handleDirectionPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const pointer = directionPointerRef.current;
-    if (!pointer || pointer.pointerId !== event.pointerId) return;
-
-    const deltaX = event.clientX - pointer.startX;
-    const deltaY = event.clientY - pointer.startY;
-    if (!pointer.dragging && Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
-    if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.1) return;
-
-    pointer.dragging = true;
-    event.preventDefault();
-    event.currentTarget.scrollLeft = pointer.startScrollLeft - deltaX;
-  };
-
-  const handleDirectionPointerEnd = (event: PointerEvent<HTMLDivElement>) => {
-    const pointer = directionPointerRef.current;
-    if (!pointer || pointer.pointerId !== event.pointerId) return;
-    const scroller = event.currentTarget;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    if (pointer.dragging) {
-      const deltaX = event.clientX - pointer.startX;
-      const targetIndex = Math.abs(deltaX) >= DIRECTION_SWIPE_TRIGGER
-        ? pointer.startIndex + (deltaX < 0 ? 1 : -1)
-        : pointer.startIndex;
-      snapToDirectionCard(scroller, targetIndex);
-      suppressDirectionClickRef.current = true;
-      window.setTimeout(() => {
-        suppressDirectionClickRef.current = false;
-      }, 0);
-    }
-    directionPointerRef.current = null;
   };
 
   return (
@@ -260,10 +177,6 @@ export function VariantEditorial() {
         <div
           ref={directionScrollerRef}
           className="editorial-direction-grid flex md:grid md:grid-cols-4 gap-4 md:gap-4 overflow-x-auto md:overflow-visible pb-4 md:pb-0 [&>*]:shrink-0"
-          onPointerDown={handleDirectionPointerDown}
-          onPointerMove={handleDirectionPointerMove}
-          onPointerUp={handleDirectionPointerEnd}
-          onPointerCancel={handleDirectionPointerEnd}
         >
           {categories.map((category, index) => (
             <button
@@ -273,15 +186,7 @@ export function VariantEditorial() {
               data-reveal
               aria-haspopup="dialog"
               aria-label={`Открыть описание: ${category.title}`}
-              onClick={(event) => {
-                if (suppressDirectionClickRef.current) {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  suppressDirectionClickRef.current = false;
-                  return;
-                }
-                setSelectedCategory(category);
-              }}
+              onClick={() => setSelectedCategory(category)}
             >
               <img
                 src={category.image}

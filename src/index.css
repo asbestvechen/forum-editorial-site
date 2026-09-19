@@ -1332,12 +1332,17 @@ html.lenis.lenis-stopped {
 
 @media (max-width: 767px) {
   .editorial-direction-grid {
-    touch-action: pan-y;
+    touch-action: pan-x pan-y pinch-zoom;
     cursor: grab;
-    scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: 0.25rem;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .editorial-direction-grid::-webkit-scrollbar {
+    display: none;
   }
 
   .editorial-direction-grid:active {
@@ -1346,7 +1351,7 @@ html.lenis.lenis-stopped {
 
   .editorial-direction-card {
     scroll-snap-align: start;
-    scroll-snap-stop: always;
+    scroll-snap-stop: normal;
   }
 
   .editorial-hero-section {
