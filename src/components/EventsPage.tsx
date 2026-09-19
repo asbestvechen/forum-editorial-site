@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Sparkles } from "lucide-react";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { env } from "@/lib/env";
@@ -237,9 +237,6 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
 export function EventsPage() {
   const [pageData, setPageData] = useState<EventsPageData>(fallbackEventsPage);
   const [registrationOpen, setRegistrationOpen] = useState(false);
-  const [feedState, setFeedState] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [feedMessage, setFeedMessage] = useState("");
-  const isGithubPages = window.location.hostname.endsWith("github.io");
   const posts = useMemo(() => pageData.posts.slice(0, 12), [pageData.posts]);
 
   useEffect(() => {
@@ -272,45 +269,6 @@ export function EventsPage() {
     return () => { active = false; };
   }, []);
 
-  const refreshFeed = async () => {
-    if (isGithubPages) {
-      setFeedState("loading");
-      setFeedMessage("");
-      try {
-        const response = await fetch(`./events.json?updated=${Date.now()}`, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Events export returned ${response.status}`);
-        setPageData(normalizeEventsPage(await response.json() as EventsPageData));
-        setFeedState("success");
-        setFeedMessage("Лента обновлена из GitHub");
-      } catch (error) {
-        setFeedState("error");
-        setFeedMessage(error instanceof Error ? error.message : "Не удалось загрузить ленту");
-      }
-      return;
-    }
-    if (!eventsApiUrl) {
-      setFeedState("error");
-      setFeedMessage("Ручное обновление пока недоступно");
-      return;
-    }
-    setFeedState("loading");
-    setFeedMessage("");
-    try {
-      const response = await fetch(`${eventsApiUrl}/sync`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await response.json() as (Partial<EventsPageData> & { error?: string; sync?: { synced?: number } });
-      if (!response.ok) throw new Error(data.error ?? "Не удалось обновить ленту");
-      setPageData(normalizeEventsPage(data));
-      setFeedState("success");
-      setFeedMessage(data.sync?.synced ? `Загружено публикаций: ${data.sync.synced}` : "Лента обновлена");
-    } catch (error) {
-      setFeedState("error");
-      setFeedMessage(error instanceof Error ? error.message : "Не удалось обновить ленту");
-    }
-  };
-
   return (
     <div className="site-editorial events-page font-body bg-[#FBF8F3] text-[#241D14]">
       <SiteHeader />
@@ -341,11 +299,6 @@ export function EventsPage() {
             </div>
             <div className="events-feed__controls">
               <span className="events-feed__status">{formatSyncTime(pageData.lastSyncedAt)}</span>
-              <button className="events-feed__refresh" type="button" onClick={() => void refreshFeed()} disabled={feedState === "loading"}>
-                <RefreshCw size={15} strokeWidth={1.5} className={feedState === "loading" ? "events-feed__refresh-icon--loading" : ""} />
-                {feedState === "loading" ? "Обновляем…" : "Обновить посты"}
-              </button>
-              {feedMessage && <span className={`events-feed__message events-feed__message--${feedState}`} role="status">{feedMessage}</span>}
             </div>
           </div>
           <div className="events-feed__grid">

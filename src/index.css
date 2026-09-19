@@ -1751,58 +1751,11 @@ html.lenis.lenis-stopped {
   gap: 0.7rem;
 }
 
-.events-feed__status,
-.events-feed__message {
+.events-feed__status {
   color: rgb(36 29 20 / 48%);
   font-size: 0.58rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.events-feed__message--error {
-  color: #a24f3f;
-}
-
-.events-feed__message--success {
-  color: #6f7f63;
-}
-
-.events-feed__refresh {
-  display: inline-flex;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.55rem;
-  border: 1px solid rgb(36 29 20 / 28%);
-  border-radius: 0.2rem;
-  padding: 0.65rem 0.85rem;
-  color: #241d14;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.59rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
-}
-
-.events-feed__refresh:hover,
-.events-feed__refresh:focus-visible {
-  border-color: #c98a12;
-  background: #efe6da;
-  outline: none;
-  transform: translateY(-1px);
-}
-
-.events-feed__refresh:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.events-feed__refresh-icon--loading {
-  animation: events-feed-spin 900ms linear infinite;
-}
-
-@keyframes events-feed-spin {
-  to { transform: rotate(360deg); }
 }
 
 .events-feed__grid {
