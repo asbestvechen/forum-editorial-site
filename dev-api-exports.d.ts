@@ -117,6 +117,9 @@ export declare function syncTelegramBot(): Promise<{
 	status: "not_configured";
 	processed: number;
 } | {
+	status: "webhook_active";
+	processed: number;
+} | {
 	status: "ok";
 	processed: number;
 }>;
