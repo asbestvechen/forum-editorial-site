@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Download, ExternalLink, Search, SlidersHorizontal } from "lucide-react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { SiteHeader } from "@/components/SiteHeader";
 import { brand } from "@/lib/brand";
 import { materialManufacturers, tileMaterials, type MaterialZone, type TileMaterial } from "@/lib/materials";
-
-const bathroomImage = "./images/light/bathroom.webp";
 
 function MaterialCard({ material, selected, onSelect }: { material: TileMaterial; selected: boolean; onSelect: () => void }) {
   return (
@@ -22,66 +24,194 @@ function MaterialCard({ material, selected, onSelect }: { material: TileMaterial
   );
 }
 
+function makeFallbackTexture(color: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const context = canvas.getContext("2d");
+  if (context) {
+    context.fillStyle = color;
+    context.fillRect(0, 0, 256, 256);
+    context.strokeStyle = "rgba(255,248,237,.38)";
+    context.lineWidth = 2;
+    for (let x = 0; x <= 256; x += 64) {
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x, 256);
+      context.stroke();
+    }
+    for (let y = 0; y <= 256; y += 64) {
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(256, y);
+      context.stroke();
+    }
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
 function BathroomRender({ wallMaterial, floorMaterial }: { wallMaterial: TileMaterial | undefined; floorMaterial: TileMaterial | undefined }) {
-  const wallPatternId = `wall-${wallMaterial?.id ?? "default"}`;
-  const floorPatternId = `floor-${floorMaterial?.id ?? "default"}`;
-  return (
-    <svg className="visualizer-render-scene" viewBox="0 0 1000 700" role="img" aria-label="Интерактивный рендер ванной комнаты">
-      <defs>
-        <linearGradient id="render-light" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stopColor="#f7eee0" />
-          <stop offset="1" stopColor="#b89979" />
-        </linearGradient>
-        <linearGradient id="render-tub" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#faf6ed" />
-          <stop offset="1" stopColor="#b9a790" />
-        </linearGradient>
-        <pattern id={wallPatternId} width="210" height="150" patternUnits="userSpaceOnUse">
-          <image href={wallMaterial?.textureUrl ?? bathroomImage} width="210" height="150" preserveAspectRatio="xMidYMid slice" />
-          <path d="M0 149.5H210" stroke="#fff8ed" strokeOpacity=".32" strokeWidth="2" />
-        </pattern>
-        <pattern id={floorPatternId} width="190" height="120" patternUnits="userSpaceOnUse" patternTransform="skewX(-12)">
-          <image href={floorMaterial?.textureUrl ?? bathroomImage} width="190" height="120" preserveAspectRatio="xMidYMid slice" />
-          <path d="M0 119.5H190" stroke="#fff8ed" strokeOpacity=".24" strokeWidth="2" />
-        </pattern>
-        <filter id="render-shadow" x="-30%" y="-30%" width="160%" height="170%">
-          <feDropShadow dx="0" dy="16" stdDeviation="18" floodColor="#241d14" floodOpacity=".24" />
-        </filter>
-      </defs>
-      <rect width="1000" height="700" fill="url(#render-light)" />
-      <polygon points="0,0 1000,0 1000,485 0,445" fill={`url(#${wallPatternId})`} />
-      <polygon points="0,445 1000,485 1000,700 0,700" fill={`url(#${floorPatternId})`} />
-      <polygon points="0,0 125,44 125,455 0,445" fill="#5b4636" fillOpacity=".68" />
-      <rect x="0" y="0" width="1000" height="22" fill="#241d14" fillOpacity=".8" />
-      <path d="M125 44V455M205 60V468M920 46V482" stroke="#241d14" strokeOpacity=".72" strokeWidth="8" />
-      <rect x="18" y="135" width="176" height="318" rx="3" fill="#e6d8c8" fillOpacity=".2" stroke="#241d14" strokeOpacity=".7" strokeWidth="5" />
-      <path d="M50 168H162M50 168V420M162 168V420" fill="none" stroke="#241d14" strokeOpacity=".65" strokeWidth="4" />
-      <path d="M52 185H160" stroke="#f8ead9" strokeOpacity=".62" strokeWidth="3" />
-      <path d="M70 190V305M143 190V305" stroke="#c98a12" strokeWidth="5" strokeLinecap="round" />
-      <circle cx="70" cy="320" r="13" fill="#c98a12" />
-      <circle cx="143" cy="320" r="13" fill="#c98a12" />
-      <g filter="url(#render-shadow)">
-        <path d="M230 490C256 457 313 440 383 440H802C871 440 930 458 950 490V566C923 602 860 620 789 620H382C306 620 256 602 230 566Z" fill="url(#render-tub)" />
-        <ellipse cx="590" cy="475" rx="348" ry="46" fill="#f9f4eb" />
-        <ellipse cx="590" cy="480" rx="307" ry="29" fill="#b8a792" fillOpacity=".43" />
-      </g>
-      <rect x="420" y="260" width="296" height="112" rx="3" fill="#241d14" fillOpacity=".78" />
-      <rect x="434" y="274" width="268" height="84" fill="#b9c5ba" fillOpacity=".28" />
-      <path d="M450 300C485 272 500 337 540 307C575 281 596 335 629 301C666 262 677 331 696 306" fill="none" stroke="#c98a12" strokeOpacity=".66" strokeWidth="5" />
-      <rect x="760" y="270" width="174" height="118" rx="2" fill="#987b60" filter="url(#render-shadow)" />
-      <rect x="780" y="288" width="134" height="59" fill="#d7cbbb" />
-      <ellipse cx="847" cy="340" rx="56" ry="17" fill="#f6f0e5" />
-      <path d="M847 337V294C847 275 872 275 872 294V300" fill="none" stroke="#c98a12" strokeWidth="7" strokeLinecap="round" />
-      <path d="M810 254C810 226 843 226 843 254V274" fill="none" stroke="#c98a12" strokeWidth="7" strokeLinecap="round" />
-      <g fill="#6f7e58" fillOpacity=".86">
-        <ellipse cx="892" cy="205" rx="24" ry="58" transform="rotate(35 892 205)" />
-        <ellipse cx="930" cy="180" rx="18" ry="49" transform="rotate(68 930 180)" />
-        <ellipse cx="868" cy="175" rx="17" ry="45" transform="rotate(-28 868 175)" />
-      </g>
-      <path d="M892 286C894 250 902 209 919 161" stroke="#536345" strokeWidth="6" fill="none" />
-      <text x="34" y="654" fill="#fbf8f3" fontSize="13" fontFamily="Montserrat, sans-serif" letterSpacing="2">ФОРУМ · VISUALIZER MVP</text>
-    </svg>
-  );
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = mountRef.current;
+    if (!root) return;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#b9a994");
+    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+    camera.position.set(6.8, 4.2, 7.5);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    root.appendChild(renderer.domElement);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const environment = new RoomEnvironment();
+    scene.environment = pmrem.fromScene(environment).texture;
+    environment.dispose();
+    pmrem.dispose();
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.35, -0.7);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minDistance = 4.8;
+    controls.maxDistance = 11;
+    controls.minPolarAngle = Math.PI * 0.24;
+    controls.maxPolarAngle = Math.PI * 0.48;
+    controls.update();
+
+    scene.add(new THREE.HemisphereLight("#fff4df", "#6a5849", 1.8));
+    const keyLight = new THREE.DirectionalLight("#fff3dc", 4.2);
+    keyLight.position.set(-3, 7, 5);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    scene.add(keyLight);
+    const warmLight = new THREE.PointLight("#edb875", 3.2, 7, 2);
+    warmLight.position.set(2.8, 3.1, -2.8);
+    scene.add(warmLight);
+
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin("anonymous");
+    const ownedTextures: THREE.Texture[] = [];
+    const makeTileMaterial = (material: TileMaterial | undefined, fallbackColor: string, repeat: [number, number]) => {
+      const fallback = makeFallbackTexture(fallbackColor);
+      fallback.wrapS = THREE.RepeatWrapping;
+      fallback.wrapT = THREE.RepeatWrapping;
+      fallback.repeat.set(...repeat);
+      ownedTextures.push(fallback);
+      const meshMaterial = new THREE.MeshStandardMaterial({ map: fallback, roughness: 0.64, metalness: 0.02 });
+      if (material) {
+        textureLoader.load(material.textureUrl, (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.repeat.set(...repeat);
+          texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          meshMaterial.map = texture;
+          meshMaterial.needsUpdate = true;
+          ownedTextures.push(texture);
+        });
+      }
+      return meshMaterial;
+    };
+
+    const wallTile = makeTileMaterial(wallMaterial, "#c5b09a", [2.4, 1.7]);
+    const floorTile = makeTileMaterial(floorMaterial, "#90765d", [4.4, 3.2]);
+    const stone = new THREE.MeshPhysicalMaterial({ color: "#e8dfd1", roughness: 0.42, clearcoat: 0.18 });
+    const darkStone = new THREE.MeshStandardMaterial({ color: "#4d3d32", roughness: 0.46 });
+    const brass = new THREE.MeshPhysicalMaterial({ color: "#c98a12", metalness: 0.82, roughness: 0.22 });
+    const glass = new THREE.MeshPhysicalMaterial({ color: "#d9e5df", transmission: 0.72, opacity: 0.36, transparent: true, roughness: 0.08, thickness: 0.02 });
+
+    const addMesh = (geometry: THREE.BufferGeometry, material: THREE.Material, position: [number, number, number], cast = true) => {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(...position);
+      mesh.castShadow = cast;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+      return mesh;
+    };
+    addMesh(new THREE.PlaneGeometry(11, 8), floorTile, [0, 0, -0.4]).rotation.x = -Math.PI / 2;
+    addMesh(new THREE.PlaneGeometry(11, 6), wallTile, [0, 3, -3.7], false);
+    const sideWall = addMesh(new THREE.PlaneGeometry(8, 6), wallTile, [-5.5, 3, 0], false);
+    sideWall.rotation.y = Math.PI / 2;
+    addMesh(new THREE.BoxGeometry(11.2, 0.22, 0.18), darkStone, [0, 0.12, -3.58]);
+
+    addMesh(new RoundedBoxGeometry(4.4, 1.15, 1.85, 8, 0.18), stone, [0, 0.76, -1.1]);
+    const water = addMesh(new THREE.CylinderGeometry(1.62, 1.62, 0.025, 64), new THREE.MeshPhysicalMaterial({ color: "#b6c9c0", transmission: 0.38, roughness: 0.12, transparent: true, opacity: 0.88 }), [0, 1.29, -1.1], false);
+    water.scale.z = 0.52;
+    const tubRim = addMesh(new THREE.TorusGeometry(1.72, 0.045, 12, 64), stone, [0, 1.3, -1.1], false);
+    tubRim.scale.z = 0.54;
+    addMesh(new THREE.BoxGeometry(2.2, 0.12, 0.12), brass, [-2.9, 2.1, -2.5]);
+    const glassWall = addMesh(new THREE.BoxGeometry(0.06, 2.7, 2.3), glass, [-3.7, 1.4, -1.6], false);
+    glassWall.castShadow = false;
+    addMesh(new THREE.BoxGeometry(0.12, 2.9, 0.12), brass, [-3.72, 1.45, -2.75]);
+    addMesh(new THREE.BoxGeometry(0.12, 2.9, 0.12), brass, [-3.72, 1.45, -0.45]);
+
+    addMesh(new THREE.BoxGeometry(1.9, 1.2, 0.62), darkStone, [3.0, 1.0, -3.2]);
+    addMesh(new THREE.BoxGeometry(1.65, 0.07, 0.78), stone, [3.0, 1.63, -3.2]);
+    addMesh(new THREE.CylinderGeometry(0.52, 0.52, 0.08, 48), stone, [3.0, 1.69, -3.18]);
+    addMesh(new THREE.BoxGeometry(1.75, 1.3, 0.07), new THREE.MeshStandardMaterial({ color: "#8b8378", metalness: 0.12, roughness: 0.18 }), [3.0, 2.95, -3.57], false);
+    addMesh(new THREE.TorusGeometry(0.16, 0.03, 8, 32), brass, [3.0, 2.95, -3.49], false);
+    addMesh(new THREE.CylinderGeometry(0.035, 0.035, 0.48, 12), brass, [3.0, 1.95, -3.18]);
+    addMesh(new THREE.TorusGeometry(0.12, 0.025, 8, 24, Math.PI), brass, [3.0, 2.2, -3.18]);
+
+    const shelf = addMesh(new THREE.BoxGeometry(2.2, 0.08, 0.35), darkStone, [0.9, 3.6, -3.5]);
+    shelf.castShadow = false;
+    addMesh(new THREE.BoxGeometry(0.08, 0.75, 0.08), brass, [0.05, 3.2, -3.5]);
+    addMesh(new THREE.BoxGeometry(0.08, 0.75, 0.08), brass, [1.75, 3.2, -3.5]);
+
+    const plantPot = addMesh(new THREE.CylinderGeometry(0.4, 0.5, 0.7, 32), darkStone, [4.2, 0.36, -1.6]);
+    plantPot.scale.z = 0.72;
+    for (let index = 0; index < 6; index += 1) {
+      const stem = addMesh(new THREE.CylinderGeometry(0.018, 0.018, 1.5, 8), new THREE.MeshStandardMaterial({ color: "#546346" }), [4.1 + (index % 3) * 0.18, 1.25 + (index % 2) * 0.25, -1.6], false);
+      stem.rotation.z = (index - 2) * 0.13;
+      const leaf = addMesh(new THREE.SphereGeometry(0.18, 12, 8), new THREE.MeshStandardMaterial({ color: index % 2 ? "#788b68" : "#5e7456", roughness: 0.8 }), [4.1 + (index % 3) * 0.2, 1.9 + (index % 2) * 0.22, -1.6], false);
+      leaf.scale.set(0.7, 1.5, 0.28);
+      leaf.rotation.z = index * 0.35;
+    }
+
+    const resize = () => {
+      const bounds = root.getBoundingClientRect();
+      const width = Math.max(1, bounds.width);
+      const height = Math.max(1, bounds.height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height, false);
+    };
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(root);
+    let animationFrame = 0;
+    const animate = () => {
+      controls.update();
+      renderer.render(scene, camera);
+      animationFrame = window.requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      observer.disconnect();
+      controls.dispose();
+      scene.traverse((object) => {
+        const mesh = object as THREE.Mesh;
+        if (mesh.geometry) mesh.geometry.dispose();
+        const materials = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
+        materials.forEach((material) => material.dispose());
+      });
+      ownedTextures.forEach((texture) => texture.dispose());
+      renderer.dispose();
+      root.removeChild(renderer.domElement);
+    };
+  }, [floorMaterial, wallMaterial]);
+
+  return <div ref={mountRef} className="visualizer-render-scene" aria-label="Реальный 3D-рэндер ванной комнаты" />;
 }
 
 export function VisualizerPage() {

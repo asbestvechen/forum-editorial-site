@@ -68,6 +68,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-query": "^5.83.0",
+    "@types/three": "^0.186.0",
     "better-sqlite3": "^12.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -91,6 +92,7 @@
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
+    "three": "^0.186.0",
     "typed-rpc": "^6.1.1",
     "vaul": "^1.1.2",
     "zod": "^4.0.5"
