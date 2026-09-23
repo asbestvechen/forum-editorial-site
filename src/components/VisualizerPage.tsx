@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Check, Download, ExternalLink, Search, SlidersHorizontal } from "lucide-react";
+import { Check, Download, ExternalLink, Search, SlidersHorizontal } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { brand } from "@/lib/brand";
 import { materialManufacturers, tileMaterials, type MaterialZone, type TileMaterial } from "@/lib/materials";
@@ -22,9 +22,66 @@ function MaterialCard({ material, selected, onSelect }: { material: TileMaterial
   );
 }
 
-function RenderSurface({ material, zone }: { material: TileMaterial | undefined; zone: MaterialZone }) {
-  if (!material) return null;
-  return <div className={`visualizer-render-surface visualizer-render-surface--${zone}`} style={{ backgroundImage: `url(${material.textureUrl})` }} aria-label={`${material.name} на поверхности ${zone === "wall" ? "стен" : "пола"}`} />;
+function BathroomRender({ wallMaterial, floorMaterial }: { wallMaterial: TileMaterial | undefined; floorMaterial: TileMaterial | undefined }) {
+  const wallPatternId = `wall-${wallMaterial?.id ?? "default"}`;
+  const floorPatternId = `floor-${floorMaterial?.id ?? "default"}`;
+  return (
+    <svg className="visualizer-render-scene" viewBox="0 0 1000 700" role="img" aria-label="Интерактивный рендер ванной комнаты">
+      <defs>
+        <linearGradient id="render-light" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor="#f7eee0" />
+          <stop offset="1" stopColor="#b89979" />
+        </linearGradient>
+        <linearGradient id="render-tub" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#faf6ed" />
+          <stop offset="1" stopColor="#b9a790" />
+        </linearGradient>
+        <pattern id={wallPatternId} width="210" height="150" patternUnits="userSpaceOnUse">
+          <image href={wallMaterial?.textureUrl ?? bathroomImage} width="210" height="150" preserveAspectRatio="xMidYMid slice" />
+          <path d="M0 149.5H210" stroke="#fff8ed" strokeOpacity=".32" strokeWidth="2" />
+        </pattern>
+        <pattern id={floorPatternId} width="190" height="120" patternUnits="userSpaceOnUse" patternTransform="skewX(-12)">
+          <image href={floorMaterial?.textureUrl ?? bathroomImage} width="190" height="120" preserveAspectRatio="xMidYMid slice" />
+          <path d="M0 119.5H190" stroke="#fff8ed" strokeOpacity=".24" strokeWidth="2" />
+        </pattern>
+        <filter id="render-shadow" x="-30%" y="-30%" width="160%" height="170%">
+          <feDropShadow dx="0" dy="16" stdDeviation="18" floodColor="#241d14" floodOpacity=".24" />
+        </filter>
+      </defs>
+      <rect width="1000" height="700" fill="url(#render-light)" />
+      <polygon points="0,0 1000,0 1000,485 0,445" fill={`url(#${wallPatternId})`} />
+      <polygon points="0,445 1000,485 1000,700 0,700" fill={`url(#${floorPatternId})`} />
+      <polygon points="0,0 125,44 125,455 0,445" fill="#5b4636" fillOpacity=".68" />
+      <rect x="0" y="0" width="1000" height="22" fill="#241d14" fillOpacity=".8" />
+      <path d="M125 44V455M205 60V468M920 46V482" stroke="#241d14" strokeOpacity=".72" strokeWidth="8" />
+      <rect x="18" y="135" width="176" height="318" rx="3" fill="#e6d8c8" fillOpacity=".2" stroke="#241d14" strokeOpacity=".7" strokeWidth="5" />
+      <path d="M50 168H162M50 168V420M162 168V420" fill="none" stroke="#241d14" strokeOpacity=".65" strokeWidth="4" />
+      <path d="M52 185H160" stroke="#f8ead9" strokeOpacity=".62" strokeWidth="3" />
+      <path d="M70 190V305M143 190V305" stroke="#c98a12" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="70" cy="320" r="13" fill="#c98a12" />
+      <circle cx="143" cy="320" r="13" fill="#c98a12" />
+      <g filter="url(#render-shadow)">
+        <path d="M230 490C256 457 313 440 383 440H802C871 440 930 458 950 490V566C923 602 860 620 789 620H382C306 620 256 602 230 566Z" fill="url(#render-tub)" />
+        <ellipse cx="590" cy="475" rx="348" ry="46" fill="#f9f4eb" />
+        <ellipse cx="590" cy="480" rx="307" ry="29" fill="#b8a792" fillOpacity=".43" />
+      </g>
+      <rect x="420" y="260" width="296" height="112" rx="3" fill="#241d14" fillOpacity=".78" />
+      <rect x="434" y="274" width="268" height="84" fill="#b9c5ba" fillOpacity=".28" />
+      <path d="M450 300C485 272 500 337 540 307C575 281 596 335 629 301C666 262 677 331 696 306" fill="none" stroke="#c98a12" strokeOpacity=".66" strokeWidth="5" />
+      <rect x="760" y="270" width="174" height="118" rx="2" fill="#987b60" filter="url(#render-shadow)" />
+      <rect x="780" y="288" width="134" height="59" fill="#d7cbbb" />
+      <ellipse cx="847" cy="340" rx="56" ry="17" fill="#f6f0e5" />
+      <path d="M847 337V294C847 275 872 275 872 294V300" fill="none" stroke="#c98a12" strokeWidth="7" strokeLinecap="round" />
+      <path d="M810 254C810 226 843 226 843 254V274" fill="none" stroke="#c98a12" strokeWidth="7" strokeLinecap="round" />
+      <g fill="#6f7e58" fillOpacity=".86">
+        <ellipse cx="892" cy="205" rx="24" ry="58" transform="rotate(35 892 205)" />
+        <ellipse cx="930" cy="180" rx="18" ry="49" transform="rotate(68 930 180)" />
+        <ellipse cx="868" cy="175" rx="17" ry="45" transform="rotate(-28 868 175)" />
+      </g>
+      <path d="M892 286C894 250 902 209 919 161" stroke="#536345" strokeWidth="6" fill="none" />
+      <text x="34" y="654" fill="#fbf8f3" fontSize="13" fontFamily="Montserrat, sans-serif" letterSpacing="2">ФОРУМ · VISUALIZER MVP</text>
+    </svg>
+  );
 }
 
 export function VisualizerPage() {
@@ -70,9 +127,7 @@ export function VisualizerPage() {
               <span className="visualizer-render-status"><span /> Живая примерка</span>
             </div>
             <div className="visualizer-render">
-              <img src={bathroomImage} alt="Рендер современной ванной комнаты" />
-              <RenderSurface material={appliedWall} zone="wall" />
-              <RenderSurface material={appliedFloor} zone="floor" />
+              <BathroomRender wallMaterial={appliedWall} floorMaterial={appliedFloor} />
               <div className="visualizer-render-note">{zone === "wall" ? "Стена" : "Пол"} · {selectedMaterial.name}</div>
             </div>
             <div className="visualizer-render-legend">
@@ -129,13 +184,6 @@ export function VisualizerPage() {
           </aside>
         </section>
 
-        <section className="visualizer-next max-w-[1400px] mx-auto px-6 md:px-12">
-          <div>
-            <p className="visualizer-eyebrow"><span /> Следующий шаг</p>
-            <h2 className="font-display">Сантехника, свет<br />и детали — дальше.</h2>
-          </div>
-          <a href="#contacts" className="visualizer-next__link">Обсудить проект <ArrowUpRight size={16} strokeWidth={1.4} /></a>
-        </section>
       </main>
       <footer className="events-footer">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-3">

@@ -3057,6 +3057,12 @@ a.footer-link:hover {
   object-fit: cover;
 }
 
+.visualizer-render-scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .visualizer-render-surface {
   position: absolute;
   z-index: 1;
