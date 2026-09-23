@@ -14,6 +14,7 @@
 - Mobile Editorial hero uses a vertical full-screen interior photo with an animated cream headline panel entering from the bottom; supporting copy and CTAs remain in normal flow immediately below the image.
 - Wide responsive direction detail drawer: on desktop it uses a two-column image/text composition so the title and description are visible immediately; on mobile it becomes a full-height sheet with the same content, accessible keyboard/backdrop controls, and left/right swipe navigation.
 - Team route at `#/team` with a split editorial hero and a single team-level contact footer; department filters and individual employee profile cards are intentionally removed.
+- Visualizer route at `#/visualizer` with a first MVP for bathroom tile selection: a reusable room render, wall/floor targets, official manufacturer material cards, search/filtering, live texture overlays, source links, and texture/catalog download links.
 - Events route at `#/events` with a warm editorial event announcement, a Telegram-derived post feed, a registration form collecting name and phone, and a Telegram channel CTA. Each post is rendered as an interactive gallery using every exported photo and detected video from its Telegram media group; inline videos use `controls`, `playsInline`, and `preload="none"`, while Telegram media too large for the public preview falls back to a direct Telegram video link. No post content is hand-authored in the UI. The featured event CTA opens the event-registration modal, while the home hero and footer open the contact modal with direct phone/Telegram links for Макс.
 - Shared editorial button variants keep the home hero, event registration, Telegram, and contact actions coherent across desktop and mobile: calm outline/warm-paper treatments for secondary actions, a light-on-dark treatment for forms, and a single stronger dark CTA for the featured event.
 - Interactive Yandex map embed for г. Екатеринбург, ул. Хохрякова, 18.
@@ -28,6 +29,7 @@
 - `src/lib/scroll.ts`: global Lenis lifecycle plus anchor/top scrolling helpers.
 - `src/components/DirectionDrawer.tsx`: accessible responsive detail drawer for the existing direction cards.
 - `src/components/EventsPage.tsx`: editorial Events page, static Telegram export, interactive post galleries, featured-event block, registration form, and modal trigger.
+- `src/components/VisualizerPage.tsx` and `src/lib/materials.ts`: tile visualizer MVP, manufacturer-backed material catalog, room-surface application state, and source/download links for designers.
 - `src/components/RegistrationModal.tsx` and `src/lib/registration.ts`: shared event/contact modal flows, Russian phone formatting, direct contact links, and environment-aware submission (public Adaptive endpoint for GitHub Pages, local Adaptive/standalone fallback).
 - `src/api/server.ts`: CORS-enabled public `POST /api/register` route for both event registrations and contact requests; the Adaptive app must have “Share via link” enabled for anonymous GitHub Pages submissions.
 - `src/api/telegram.ts`: public `t.me/s/salon4room` parser, grouped-photo/video extraction, deterministic post categorization/title/excerpt formatting, and filtering for Telegram system-service posts such as pinned photos and profile/wallpaper updates. Exhibition posts with Cersaie-style collection and factory language are classified as materials rather than objects.
@@ -41,6 +43,7 @@
 - `public/images/directions/`: curated 4:5 WebP editorial interiors used inside the existing direction categories, unified around the brighter warm-white, pale oak, limestone, textile, charcoal, and muted brass palette of the original series.
 - `public/images/team/team.webp`: temporary AI-generated group hero image for the team-level page; individual portrait assets remain available for future use but are not rendered in the current team tab.
 - `public/images/brands/`: locally cached 128px brand marks sourced from public brand domains via favicon endpoints; unsupported or unnamed suppliers use a text-only wordmark fallback.
+- Visualizer material previews and source files currently point to official Emilceramica, 41zero42, and Florim catalog/CDN URLs; this keeps the first MVP host-independent while a later catalog proxy/import service can be added for the future hosting move.
 
 ## Brand Assets
 

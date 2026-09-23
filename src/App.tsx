@@ -2,16 +2,17 @@ import { useEffect, useState } from "react";
 import { VariantEditorial } from "@/components/variants/VariantEditorial";
 import { TeamPage } from "@/components/TeamPage";
 import { EventsPage } from "@/components/EventsPage";
+import { VisualizerPage } from "@/components/VisualizerPage";
 import { getPageAnchorId, initializeSmoothScroll, scrollToElement, scrollToTop } from "@/lib/scroll";
 
 function App() {
-  const [page, setPage] = useState(() => window.location.hash === "#/team" ? "team" : window.location.hash === "#/events" ? "events" : "home");
+  const [page, setPage] = useState(() => window.location.hash === "#/team" ? "team" : window.location.hash === "#/events" ? "events" : window.location.hash === "#/visualizer" ? "visualizer" : "home");
 
   useEffect(() => {
     const cleanupSmoothScroll = initializeSmoothScroll();
     const handleHashChange = () => {
       const hash = window.location.hash;
-      const nextPage = hash === "#/team" ? "team" : hash === "#/events" ? "events" : "home";
+      const nextPage = hash === "#/team" ? "team" : hash === "#/events" ? "events" : hash === "#/visualizer" ? "visualizer" : "home";
       setPage(nextPage);
 
       window.requestAnimationFrame(() => {
@@ -40,7 +41,7 @@ function App() {
   }, []);
 
   return (
-    <>{page === "team" ? <TeamPage /> : page === "events" ? <EventsPage /> : <VariantEditorial />}</>
+    <>{page === "team" ? <TeamPage /> : page === "events" ? <EventsPage /> : page === "visualizer" ? <VisualizerPage /> : <VariantEditorial />}</>
   );
 }
 

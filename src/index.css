@@ -2923,3 +2923,540 @@ a.footer-link:hover {
     grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
   }
 }
+
+/* Visualizer MVP: a practical material-selection surface for designers. */
+.visualizer-page {
+  min-height: 100vh;
+}
+
+.visualizer-hero {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(3.5rem, 8vw, 7rem) 3rem clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.visualizer-hero__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  border-bottom: 1px solid rgb(36 29 20 / 14%);
+  padding-bottom: 2rem;
+}
+
+.visualizer-hero h1 {
+  margin: 1rem 0 0;
+  font-size: clamp(3.7rem, 8vw, 8rem);
+  font-weight: 400;
+  letter-spacing: -0.08em;
+  line-height: 0.85;
+}
+
+.visualizer-hero h1 span {
+  color: #c98a12;
+}
+
+.visualizer-hero__heading > p {
+  max-width: 20rem;
+  margin: 0 0 0.35rem;
+  color: rgb(36 29 20 / 62%);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.visualizer-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  color: #c98a12;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.visualizer-eyebrow span {
+  display: inline-block;
+  width: 2.2rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.visualizer-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(25rem, 0.8fr);
+  gap: clamp(1.5rem, 3vw, 3.5rem);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 3rem 7rem;
+}
+
+.visualizer-render-column,
+.visualizer-catalog {
+  min-width: 0;
+}
+
+.visualizer-render-toolbar,
+.visualizer-catalog__intro,
+.visualizer-selected__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.visualizer-render-toolbar {
+  padding: 0 0 1rem;
+}
+
+.visualizer-render-toolbar strong {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.visualizer-toolbar-label {
+  display: block;
+  color: rgb(36 29 20 / 48%);
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.visualizer-render-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgb(36 29 20 / 52%);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.visualizer-render-status span {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #8aa37b;
+  box-shadow: 0 0 0 4px rgb(138 163 123 / 15%);
+}
+
+.visualizer-render {
+  position: relative;
+  aspect-ratio: 1.42 / 1;
+  overflow: hidden;
+  background: #ded3c5;
+  box-shadow: 0 2rem 5rem rgb(36 29 20 / 12%);
+}
+
+.visualizer-render > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.visualizer-render-surface {
+  position: absolute;
+  z-index: 1;
+  background-position: center;
+  background-size: 23rem auto;
+  mix-blend-mode: multiply;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.visualizer-render-surface--wall {
+  inset: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 63%, 77% 57%, 0 58%);
+}
+
+.visualizer-render-surface--floor {
+  inset: 0;
+  background-size: 18rem auto;
+  opacity: 0.28;
+  clip-path: polygon(0 73%, 100% 69%, 100% 100%, 0 100%);
+}
+
+.visualizer-render-note {
+  position: absolute;
+  z-index: 2;
+  top: 1rem;
+  left: 1rem;
+  border: 1px solid rgb(251 248 243 / 55%);
+  background: rgb(36 29 20 / 60%);
+  padding: 0.55rem 0.7rem;
+  color: #fbf8f3;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.visualizer-render-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-top: 0.85rem;
+}
+
+.visualizer-render-legend button {
+  border: 1px solid rgb(36 29 20 / 18%);
+  background: transparent;
+  padding: 0.55rem 0.75rem;
+  color: rgb(36 29 20 / 58%);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.visualizer-render-legend button.is-active {
+  border-color: #c98a12;
+  background: #c98a12;
+  color: #fbf8f3;
+}
+
+.visualizer-render-legend span {
+  margin-left: auto;
+  color: rgb(36 29 20 / 42%);
+  font-size: 0.65rem;
+}
+
+.visualizer-catalog {
+  border: 1px solid rgb(36 29 20 / 13%);
+  background: #f0e8dd;
+  padding: clamp(1.2rem, 2vw, 2rem);
+}
+
+.visualizer-catalog__intro {
+  border-bottom: 1px solid rgb(36 29 20 / 13%);
+  padding-bottom: 1rem;
+}
+
+.visualizer-catalog__intro h2 {
+  margin: 0.35rem 0 0;
+  font-size: 2.3rem;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+}
+
+.visualizer-filters {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem 0 0.75rem;
+}
+
+.visualizer-search,
+.visualizer-select {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-bottom: 1px solid rgb(36 29 20 / 22%);
+  color: rgb(36 29 20 / 55%);
+}
+
+.visualizer-search input,
+.visualizer-select select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #241d14;
+  font-size: 0.76rem;
+}
+
+.visualizer-search input {
+  padding: 0.65rem 0;
+}
+
+.visualizer-select {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  padding: 0.28rem 0 0.65rem;
+}
+
+.visualizer-select span {
+  color: rgb(36 29 20 / 46%);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.visualizer-catalog__count {
+  color: rgb(36 29 20 / 45%);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.visualizer-materials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  max-height: 34rem;
+  overflow: auto;
+  margin-top: 0.75rem;
+  padding-right: 0.25rem;
+}
+
+.visualizer-material-card {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  gap: 0.65rem;
+  min-width: 0;
+  border: 1px solid transparent;
+  background: rgb(251 248 243 / 62%);
+  padding: 0.45rem;
+  text-align: left;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.visualizer-material-card:hover,
+.visualizer-material-card:focus-visible,
+.visualizer-material-card--selected {
+  border-color: #c98a12;
+  background: #fbf8f3;
+  outline: none;
+}
+
+.visualizer-material-card__image-wrap {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #d7c9b8;
+}
+
+.visualizer-material-card__image-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.visualizer-material-card__check {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #c98a12;
+  color: #fbf8f3;
+}
+
+.visualizer-material-card__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+}
+
+.visualizer-material-card__copy strong,
+.visualizer-material-card__copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visualizer-material-card__copy strong {
+  color: #241d14;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.visualizer-material-card__copy > span:last-child {
+  color: rgb(36 29 20 / 48%);
+  font-size: 0.6rem;
+}
+
+.visualizer-material-card__brand {
+  color: #c98a12;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.visualizer-empty {
+  margin: 1rem 0;
+  color: rgb(36 29 20 / 55%);
+  font-size: 0.8rem;
+}
+
+.visualizer-selected {
+  margin-top: 1rem;
+  border-top: 1px solid rgb(36 29 20 / 15%);
+  padding-top: 1rem;
+}
+
+.visualizer-selected__heading > span:last-child {
+  color: #c98a12;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.visualizer-selected__material {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.8rem;
+  margin-top: 0.75rem;
+}
+
+.visualizer-selected__material img {
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+}
+
+.visualizer-selected__material div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.visualizer-selected__material strong {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.visualizer-selected__material span {
+  overflow: hidden;
+  color: rgb(36 29 20 / 52%);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visualizer-selected__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.visualizer-apply,
+.visualizer-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid #241d14;
+  padding: 0.75rem 0.8rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.visualizer-apply {
+  background: #241d14;
+  color: #fbf8f3;
+}
+
+.visualizer-download {
+  border-color: rgb(36 29 20 / 25%);
+  color: #241d14;
+  white-space: nowrap;
+}
+
+.visualizer-apply:hover,
+.visualizer-download:hover,
+.visualizer-source:hover {
+  color: #c98a12;
+}
+
+.visualizer-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  color: rgb(36 29 20 / 53%);
+  font-size: 0.62rem;
+}
+
+.visualizer-next {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  border-top: 1px solid rgb(36 29 20 / 14%);
+  padding-top: 3rem;
+  padding-bottom: 7rem;
+}
+
+.visualizer-next h2 {
+  margin: 1rem 0 0;
+  font-size: clamp(2.6rem, 5vw, 5.5rem);
+  font-weight: 400;
+  letter-spacing: -0.07em;
+  line-height: 0.9;
+}
+
+.visualizer-next__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #241d14;
+  padding-bottom: 0.55rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1020px) {
+  .visualizer-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .visualizer-catalog {
+    max-width: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .visualizer-hero,
+  .visualizer-workspace {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  .visualizer-hero__heading,
+  .visualizer-next {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .visualizer-hero h1 {
+    font-size: clamp(3.6rem, 18vw, 6rem);
+  }
+
+  .visualizer-render {
+    aspect-ratio: 1 / 1.05;
+  }
+
+  .visualizer-render-legend {
+    flex-wrap: wrap;
+  }
+
+  .visualizer-render-legend span {
+    width: 100%;
+    margin-left: 0;
+    padding-top: 0.35rem;
+  }
+
+  .visualizer-materials-grid {
+    max-height: 28rem;
+  }
+
+  .visualizer-selected__actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -11,6 +11,7 @@ const links = [
   { href: "#directions", label: "Направления" },
   { href: "#about", label: "О нас" },
   { href: "#/team", label: "Наша команда" },
+  { href: "#/visualizer", label: "Визуализатор" },
   { href: "#/events", label: "События" },
   { href: "#contacts", label: "Контакты" },
 ];
