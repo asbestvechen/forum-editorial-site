@@ -1,5 +1,11 @@
 export type EventPostCategory = "event" | "objects" | "materials" | "news" | "inspiration";
 
+export type TelegramMedia = {
+  type: "image" | "video";
+  url: string | null;
+  posterUrl?: string | null;
+};
+
 export type TelegramPost = {
   id: string;
   telegramMessageId: number;
@@ -11,6 +17,7 @@ export type TelegramPost = {
   excerpt: string;
   imageUrl?: string | null;
   imageUrls: string[];
+  media?: TelegramMedia[];
   telegramUrl: string;
 };
 

@@ -1,7 +1,7 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fetchTelegramPreview } from "../src/api/telegram";
-import type { EventsPageData, TelegramPost } from "../src/lib/events";
+import type { EventsPageData, TelegramMedia, TelegramPost } from "../src/lib/events";
 
 const projectRoot = process.cwd();
 const eventsFile = resolve(projectRoot, "public/events.json");
@@ -53,9 +53,21 @@ async function main() {
   }
   const sourcePosts = await fetchTelegramPreview();
   const posts = await Promise.all(sourcePosts.map(async (post) => {
-    const sourceImages = post.imageUrls.length > 0 ? post.imageUrls : post.imageUrl ? [post.imageUrl] : [];
-    const imageUrls = await Promise.all(sourceImages.map((imageUrl, index) => downloadPostImage(post, imageUrl, index)));
-    return { ...post, imageUrl: imageUrls[0] ?? null, imageUrls };
+    const sourceMedia: TelegramMedia[] = post.media?.length
+      ? post.media
+      : (post.imageUrls.length > 0 ? post.imageUrls : post.imageUrl ? [post.imageUrl] : [])
+        .map((url) => ({ type: "image" as const, url }));
+    let imageIndex = 0;
+    const media = await Promise.all(sourceMedia.map(async (item) => {
+      if (item.type === "video" || !item.url?.startsWith("http")) return item;
+      const currentImageIndex = imageIndex;
+      imageIndex += 1;
+      const localUrl = await downloadPostImage(post, item.url, currentImageIndex);
+      return { ...item, url: localUrl };
+    }));
+    const imageUrls = media.filter((item) => item.type === "image" && item.url).map((item) => item.url as string);
+    const videoPoster = media.find((item) => item.type === "video")?.posterUrl ?? null;
+    return { ...post, media, imageUrl: imageUrls[0] ?? videoPoster, imageUrls };
   }));
   const data: EventsPageData = {
     featuredEvent,

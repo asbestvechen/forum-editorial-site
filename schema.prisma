@@ -29,6 +29,7 @@ model TelegramPost {
   text              String
   excerpt           String
   imageUrl          String?
+  mediaJson         String?
   telegramUrl       String
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

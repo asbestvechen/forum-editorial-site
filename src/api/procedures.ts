@@ -2,7 +2,7 @@ import { db } from "@/api/db";
 import { env } from "@/lib/env";
 import { fetchTelegramPreview, isTelegramSystemPost, TELEGRAM_CHANNEL_URL } from "@/api/telegram";
 import { mcp } from "@adaptive-ai/sdk/server";
-import type { EventPostCategory, FeaturedEvent, EventsPageData, TelegramPost } from "@/lib/events";
+import type { EventPostCategory, FeaturedEvent, EventsPageData, TelegramMedia, TelegramPost } from "@/lib/events";
 import {
   advanceEventDraft,
   eventDraftPrompt,
@@ -29,13 +29,28 @@ function serializePost(post: {
   text: string;
   excerpt: string;
   imageUrl: string | null;
+  mediaJson?: string | null;
   telegramUrl: string;
 }): TelegramPost {
+  let media: TelegramMedia[] = [];
+  try {
+    const parsed = post.mediaJson ? JSON.parse(post.mediaJson) : [];
+    if (Array.isArray(parsed)) {
+      media = parsed.filter((item): item is TelegramMedia => (
+        item && (item.type === "image" || item.type === "video") && (typeof item.url === "string" || item.url === null)
+      ));
+    }
+  } catch {
+    media = [];
+  }
+  if (media.length === 0 && post.imageUrl) media = [{ type: "image", url: post.imageUrl }];
+  const imageUrls = media.filter((item) => item.type === "image" && item.url).map((item) => item.url as string);
   return {
     ...post,
     category: post.category as EventPostCategory,
     publishedAt: post.publishedAt.toISOString(),
-    imageUrls: post.imageUrl ? [post.imageUrl] : [],
+    imageUrls,
+    media,
   };
 }
 
@@ -245,6 +260,7 @@ export async function syncTelegramFeed() {
         text: post.text,
         excerpt: post.excerpt,
         imageUrl: post.imageUrl,
+        mediaJson: JSON.stringify(post.media ?? []),
         telegramUrl: post.telegramUrl,
       },
       update: {
@@ -255,6 +271,7 @@ export async function syncTelegramFeed() {
         text: post.text,
         excerpt: post.excerpt,
         imageUrl: post.imageUrl,
+        mediaJson: JSON.stringify(post.media ?? []),
         telegramUrl: post.telegramUrl,
       },
     });

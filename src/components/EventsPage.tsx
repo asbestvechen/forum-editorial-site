@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Sparkles } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Play, Sparkles } from "lucide-react";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { env } from "@/lib/env";
@@ -11,6 +11,7 @@ import {
   formatPostDate,
   type EventsPageData,
   type FeaturedEvent,
+  type TelegramMedia,
   type TelegramPost,
 } from "@/lib/events";
 import { formatRussianPhone, submitRegistration } from "@/lib/registration";
@@ -43,65 +44,107 @@ function formatSyncTime(value: string | null) {
   return `Обновлено ${new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Yekaterinburg" }).format(date).replace(".", "")}`;
 }
 
+function getPostMedia(post: TelegramPost): TelegramMedia[] {
+  if (post.media?.length) return post.media;
+  if (post.imageUrls?.length) return post.imageUrls.map((url) => ({ type: "image" as const, url }));
+  return post.imageUrl ? [{ type: "image", url: post.imageUrl }] : [];
+}
+
 function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
   const accent = eventPostCategoryAccent[post.category];
-  const images = post.imageUrls?.length ? post.imageUrls : post.imageUrl ? [post.imageUrl] : [];
+  const media = getPostMedia(post);
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeImage = images[activeIndex] ?? images[0] ?? "";
+  const activeMedia = media[activeIndex] ?? media[0] ?? null;
 
   const moveToImage = (nextIndex: number) => {
-    setActiveIndex(Math.max(0, Math.min(nextIndex, images.length - 1)));
+    setActiveIndex(Math.max(0, Math.min(nextIndex, media.length - 1)));
+  };
+
+  const imageCount = media.filter((item) => item.type === "image").length;
+  const videoCount = media.filter((item) => item.type === "video").length;
+
+  const renderStage = () => {
+    if (!activeMedia) {
+      return (
+        <div className="events-post__gallery-fallback" style={{ "--post-accent": accent } as CSSProperties}>
+          <Sparkles size={26} strokeWidth={1} />
+        </div>
+      );
+    }
+
+    if (activeMedia.type === "video") {
+      if (activeMedia.url) {
+        return (
+          <div className="events-post__gallery-stage events-post__gallery-stage--video">
+            <video controls preload="none" playsInline poster={activeMedia.posterUrl ?? undefined} aria-label={`Видео публикации ${post.title}`}>
+              <source src={activeMedia.url} />
+            </video>
+            <a className="events-post__media-source" href={post.telegramUrl} target="_blank" rel="noreferrer">
+              Открыть в Telegram <ArrowUpRight size={13} strokeWidth={1.4} />
+            </a>
+          </div>
+        );
+      }
+
+      return (
+        <a className="events-post__gallery-stage events-post__gallery-stage--video-fallback" href={post.telegramUrl} target="_blank" rel="noreferrer" aria-label={`Открыть видео публикации ${post.title} в Telegram`}>
+          {activeMedia.posterUrl ? <img src={activeMedia.posterUrl} alt="" loading={index === 0 ? "eager" : "lazy"} /> : <Sparkles size={26} strokeWidth={1} />}
+          <span className="events-post__video-fallback-label"><Play size={16} fill="currentColor" strokeWidth={1.4} /> Открыть видео в Telegram</span>
+        </a>
+      );
+    }
+
+    if (!activeMedia.url) return null;
+    return (
+      <a
+        className="events-post__gallery-stage"
+        href={activeMedia.url}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`Открыть фотографию ${activeIndex + 1} из ${media.length} в полном размере`}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft") moveToImage(activeIndex - 1);
+          if (event.key === "ArrowRight") moveToImage(activeIndex + 1);
+        }}
+      >
+        <img
+          src={activeMedia.url}
+          alt=""
+          loading={index === 0 ? "eager" : "lazy"}
+          onLoad={(event) => {
+            if (event.currentTarget.naturalWidth < 640) event.currentTarget.classList.add("events-post__media-image--lowres");
+          }}
+        />
+      </a>
+    );
   };
 
   return (
     <div className="events-post__gallery">
-      {images.length > 0 ? (
+      {media.length > 0 ? (
         <div className="events-post__gallery-stage-wrap">
-          <a
-            className="events-post__gallery-stage"
-            href={activeImage}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Открыть фотографию ${activeIndex + 1} из ${images.length} в полном размере`}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowLeft") moveToImage(activeIndex - 1);
-              if (event.key === "ArrowRight") moveToImage(activeIndex + 1);
-            }}
-          >
-            <img
-              src={activeImage}
-              alt=""
-              loading={index === 0 ? "eager" : "lazy"}
-              onLoad={(event) => {
-                if (event.currentTarget.naturalWidth < 640) event.currentTarget.classList.add("events-post__media-image--lowres");
-              }}
-            />
-            <span className="events-post__gallery-position">{String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span>
-          </a>
-          {images.length > 1 && (
-            <div className="events-post__thumbnails" aria-label="Фотографии публикации">
-              {images.map((imageUrl, imageIndex) => (
+          {renderStage()}
+          <span className="events-post__gallery-position">{String(activeIndex + 1).padStart(2, "0")} / {String(media.length).padStart(2, "0")}</span>
+          {media.length > 1 && (
+            <div className="events-post__thumbnails" aria-label="Медиа публикации">
+              {media.map((item, mediaIndex) => (
                 <button
-                  className={`events-post__thumbnail ${imageIndex === activeIndex ? "events-post__thumbnail--active" : ""}`}
+                  className={`events-post__thumbnail ${mediaIndex === activeIndex ? "events-post__thumbnail--active" : ""}`}
                   type="button"
-                  key={`${imageUrl}-${imageIndex}`}
-                  aria-label={`Показать фотографию ${imageIndex + 1} из ${images.length}`}
-                  aria-pressed={imageIndex === activeIndex}
-                  onClick={() => moveToImage(imageIndex)}
+                  key={`${item.url ?? item.posterUrl ?? "video"}-${mediaIndex}`}
+                  aria-label={item.type === "video" ? `Показать видео ${mediaIndex + 1} из ${media.length}` : `Показать фотографию ${mediaIndex + 1} из ${media.length}`}
+                  aria-pressed={mediaIndex === activeIndex}
+                  onClick={() => moveToImage(mediaIndex)}
                 >
-                  <img src={imageUrl} alt="" loading="lazy" />
+                  {item.type === "image" && item.url ? <img src={item.url} alt="" loading="lazy" /> : item.posterUrl ? <img src={item.posterUrl} alt="" loading="lazy" /> : <Play size={15} fill="currentColor" strokeWidth={1.4} />}
                 </button>
               ))}
             </div>
           )}
         </div>
-      ) : (
-        <div className="events-post__gallery-fallback" style={{ "--post-accent": accent } as CSSProperties}>
-          <Sparkles size={26} strokeWidth={1} />
-        </div>
-      )}
+      ) : <div className="events-post__gallery-fallback" style={{ "--post-accent": accent } as CSSProperties}><Sparkles size={26} strokeWidth={1} /></div>}
       <div className="events-post__gallery-caption">
-        <span><Images size={14} strokeWidth={1.4} /> {images.length ? `${images.length} фото` : "Без фото"}</span>
+        <span><Images size={14} strokeWidth={1.4} /> {media.length ? [imageCount ? `${imageCount} фото` : "", videoCount ? `${videoCount} видео` : ""].filter(Boolean).join(" · ") : "Без медиа"}</span>
       </div>
     </div>
   );

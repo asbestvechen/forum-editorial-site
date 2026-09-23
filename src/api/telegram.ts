@@ -1,4 +1,4 @@
-import type { EventPostCategory, TelegramPost } from "@/lib/events";
+import type { EventPostCategory, TelegramMedia, TelegramPost } from "@/lib/events";
 
 export const TELEGRAM_CHANNEL_USERNAME = "salon4room";
 export const TELEGRAM_CHANNEL_URL = `https://t.me/${TELEGRAM_CHANNEL_USERNAME}`;
@@ -48,6 +48,7 @@ export function isTelegramSystemPost(text: string) {
 function classifyPost(text: string): EventPostCategory {
   const value = text.toLocaleLowerCase("ru-RU");
   if (/мероприяти|бизнес[- ]завтрак|вечер|презентаци|встреч[аи]|мастер[- ]класс|аперол/.test(value)) return "event";
+  if (/(выставк|cersaie)/.test(value) && /(трансляц|фабрик|коллекци|стенд|материал|релиз|тренд)/.test(value)) return "materials";
   if (/объект|реализаци|проект|комплектаци|монтаж/.test(value)) return "objects";
   if (/образц|коллекци|фабрик|бренд|материал|плитк|сантехник|светильник|ткан/.test(value)) return "materials";
   if (/новост|поздрав|салон|ждём|ждем/.test(value)) return "news";
@@ -91,6 +92,16 @@ function makeExcerpt(text: string, category: EventPostCategory) {
   return `${normalized.slice(0, 187).trimEnd()}…`;
 }
 
+function extractVideoUrl(block: string) {
+  const matches = [
+    block.match(/<video\b[^>]+\b(?:src|data-src)=["']([^"']+)/i)?.[1],
+    block.match(/<source\b[^>]+\bsrc=["']([^"']+)/i)?.[1],
+    block.match(/\bdata-video(?:-url)?=["']([^"']+)/i)?.[1],
+  ];
+  const match = matches.find(Boolean);
+  return match ? decodeHtml(match) : null;
+}
+
 function parseMessageBlock(block: string): TelegramPost | null {
   const messageId = block.match(/data-post="[^"]+\/(\d+)"/)?.[1];
   const publishedAt = block.match(/<time[^>]+datetime="([^"]+)"/)?.[1];
@@ -107,8 +118,16 @@ function parseMessageBlock(block: string): TelegramPost | null {
     .filter((url): url is string => Boolean(url))
     .map(decodeHtml)));
   const videoPoster = block.match(/class="[^"]*tgme_widget_message_video_thumb[^"]*"[^>]+style="[^"]*background-image:\s*url\(['"]?([^'")]+)/i)?.[1] ?? null;
+  const hasVideo = /class="[^"]*tgme_widget_message_video_player\b/i.test(block)
+    || /class="[^"]*tgme_widget_message_video_wrap\b/i.test(block);
+  const videoUrl = hasVideo ? extractVideoUrl(block) : null;
   const imageMatch = block.match(/<img[^>]+src="([^"]+)"/i);
-  const imageUrl = imageUrls[0] ?? (videoPoster ? decodeHtml(videoPoster) : imageMatch?.[1] ? decodeHtml(imageMatch[1]) : null);
+  const decodedVideoPoster = videoPoster ? decodeHtml(videoPoster) : null;
+  const imageUrl = imageUrls[0] ?? decodedVideoPoster ?? (imageMatch?.[1] ? decodeHtml(imageMatch[1]) : null);
+  const media: TelegramMedia[] = [
+    ...imageUrls.map((url) => ({ type: "image" as const, url })),
+    ...(hasVideo ? [{ type: "video" as const, url: videoUrl, posterUrl: decodedVideoPoster }] : []),
+  ];
 
   return {
     id: `telegram-${messageId}`,
@@ -121,6 +140,7 @@ function parseMessageBlock(block: string): TelegramPost | null {
     excerpt: makeExcerpt(text, category),
     imageUrl,
     imageUrls,
+    media,
     telegramUrl: `${TELEGRAM_CHANNEL_URL}/${messageId}`,
   };
 }
