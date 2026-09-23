@@ -5,6 +5,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { SiteHeader } from "@/components/SiteHeader";
+import { Bathroom3DScene } from "@/components/Bathroom3DScene";
 import { brand } from "@/lib/brand";
 import { materialManufacturers, tileMaterials, type MaterialZone, type TileMaterial } from "@/lib/materials";
 
@@ -50,6 +51,8 @@ function makeFallbackTexture(color: string) {
   return new THREE.CanvasTexture(canvas);
 }
 
+// Legacy inline-scene fallback retained only as source reference during the GLTF migration.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function BathroomRender({ wallMaterial, floorMaterial }: { wallMaterial: TileMaterial | undefined; floorMaterial: TileMaterial | undefined }) {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -257,7 +260,7 @@ export function VisualizerPage() {
               <span className="visualizer-render-status"><span /> Живая примерка</span>
             </div>
             <div className="visualizer-render">
-              <BathroomRender wallMaterial={appliedWall} floorMaterial={appliedFloor} />
+              <Bathroom3DScene wallMaterial={appliedWall} floorMaterial={appliedFloor} />
               <div className="visualizer-render-note">{zone === "wall" ? "Стена" : "Пол"} · {selectedMaterial.name}</div>
             </div>
             <div className="visualizer-render-legend">
@@ -303,6 +306,7 @@ export function VisualizerPage() {
                   <strong>{selectedMaterial.name}</strong>
                   <span>{selectedMaterial.manufacturer} · {selectedMaterial.collection}</span>
                   <span>{selectedMaterial.format} · {selectedMaterial.finish}</span>
+                   <span>{selectedMaterial.format} · {selectedMaterial.finish}</span>
                 </div>
               </div>
               <div className="visualizer-selected__actions">
