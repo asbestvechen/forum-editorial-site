@@ -305,8 +305,7 @@ export function VisualizerPage() {
                 <div>
                   <strong>{selectedMaterial.name}</strong>
                   <span>{selectedMaterial.manufacturer} · {selectedMaterial.collection}</span>
-                  <span>{selectedMaterial.format} · {selectedMaterial.finish}</span>
-                   <span>{selectedMaterial.format} · {selectedMaterial.finish}</span>
+                    <span>{selectedMaterial.format} · {selectedMaterial.finish}</span>
                 </div>
               </div>
               <div className="visualizer-selected__actions">

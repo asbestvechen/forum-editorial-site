@@ -30,7 +30,7 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     root.appendChild(renderer.domElement);
 

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "@/App.tsx";
 import { initializeClientEnvironment } from "@adaptive-ai/sdk/client";
 import { RootErrorBoundary } from "@/components/error-boundary";
+import "@/index.css";
 
 initializeClientEnvironment({
   appId: import.meta.env.VITE_APP_ID,
