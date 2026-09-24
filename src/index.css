@@ -2984,11 +2984,11 @@ a.footer-link:hover {
 
 .visualizer-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(25rem, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 3.5rem);
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 3rem 7rem;
+  padding: 2rem 3rem 7rem;
 }
 
 .visualizer-render-column,
@@ -3044,7 +3044,7 @@ a.footer-link:hover {
 
 .visualizer-render {
   position: relative;
-  aspect-ratio: 1.42 / 1;
+  aspect-ratio: 1.12 / 1;
   overflow: hidden;
   background: #ded3c5;
   box-shadow: 0 2rem 5rem rgb(36 29 20 / 12%);
@@ -3147,6 +3147,24 @@ a.footer-link:hover {
   line-height: 0.9;
 }
 
+.visualizer-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.75rem 0 0;
+  color: rgb(36 29 20 / 48%);
+  font-size: 0.72rem;
+}
+
+.visualizer-breadcrumb span {
+  color: #c98a12;
+}
+
+.visualizer-breadcrumb i {
+  font-style: normal;
+  color: rgb(36 29 20 / 28%);
+}
+
 .visualizer-filters {
   display: grid;
   gap: 0.65rem;
@@ -3200,22 +3218,18 @@ a.footer-link:hover {
 
 .visualizer-materials-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.55rem;
-  max-height: 34rem;
-  overflow: auto;
   margin-top: 0.75rem;
-  padding-right: 0.25rem;
 }
 
 .visualizer-material-card {
-  display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr);
-  gap: 0.65rem;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   border: 1px solid transparent;
   background: rgb(251 248 243 / 62%);
-  padding: 0.45rem;
+  padding: 0;
   text-align: left;
   transition: border-color 180ms ease, background 180ms ease;
 }
@@ -3231,7 +3245,8 @@ a.footer-link:hover {
 .visualizer-material-card__image-wrap {
   position: relative;
   display: block;
-  aspect-ratio: 1;
+  width: 100%;
+  aspect-ratio: 1.65 / 1;
   overflow: hidden;
   background: #d7c9b8;
 }
@@ -3262,6 +3277,7 @@ a.footer-link:hover {
   flex-direction: column;
   justify-content: center;
   gap: 0.15rem;
+  padding: 0.65rem 0.6rem 0.75rem;
 }
 
 .visualizer-material-card__copy strong,
@@ -3459,7 +3475,7 @@ a.footer-link:hover {
   }
 
   .visualizer-materials-grid {
-    max-height: 28rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .visualizer-selected__actions {

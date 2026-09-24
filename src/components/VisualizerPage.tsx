@@ -240,16 +240,6 @@ export function VisualizerPage() {
     <div className="visualizer-page site-editorial font-body bg-[#FBF8F3] text-[#241D14]">
       <SiteHeader />
       <main>
-        <section className="visualizer-hero">
-          <div className="visualizer-hero__heading">
-            <div>
-              <p className="visualizer-eyebrow"><span /> Ванная · плитка</p>
-              <h1 className="font-display">Визуализатор<span>.</span></h1>
-            </div>
-            <p>Выбирайте реальные материалы производителей и сразу примеряйте их на интерьер.</p>
-          </div>
-        </section>
-
         <section className="visualizer-workspace" aria-label="Визуализатор плитки">
           <div className="visualizer-render-column">
             <div className="visualizer-render-toolbar">
@@ -274,7 +264,8 @@ export function VisualizerPage() {
             <div className="visualizer-catalog__intro">
               <div>
                 <span className="visualizer-toolbar-label">Каталог материалов</span>
-                <h2 className="font-display">Плитка</h2>
+                <h2 className="font-display">Визуализатор</h2>
+                <p className="visualizer-breadcrumb"><span>Ванная</span><i>/</i>Плитка</p>
               </div>
               <SlidersHorizontal size={19} strokeWidth={1.3} />
             </div>

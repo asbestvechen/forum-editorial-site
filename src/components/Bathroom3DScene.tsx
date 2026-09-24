@@ -98,14 +98,26 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
       const bounds = new THREE.Box3().setFromObject(currentModel);
       const size = bounds.getSize(new THREE.Vector3());
       const center = bounds.getCenter(new THREE.Vector3());
-      currentModel.position.sub(center);
-      scene.add(currentModel);
       const maxDimension = Math.max(size.x, size.y, size.z);
-      camera.position.set(maxDimension * 0.9, maxDimension * 0.48, maxDimension * 0.92);
-      camera.near = Math.max(0.01, maxDimension / 1000);
-      camera.far = maxDimension * 10;
+      const importedCamera = gltf.cameras.find((candidate): candidate is THREE.PerspectiveCamera => candidate instanceof THREE.PerspectiveCamera);
+
+      if (importedCamera) {
+        camera.position.copy(importedCamera.position);
+        camera.quaternion.copy(importedCamera.quaternion);
+        camera.fov = importedCamera.fov;
+        camera.near = Math.max(0.01, importedCamera.near);
+        camera.far = importedCamera.far;
+        const viewDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+        controls.target.copy(camera.position).addScaledVector(viewDirection, maxDimension * 0.72);
+      } else {
+        currentModel.position.sub(center);
+        camera.position.set(maxDimension * 0.9, maxDimension * 0.48, maxDimension * 0.92);
+        camera.near = Math.max(0.01, maxDimension / 1000);
+        camera.far = maxDimension * 10;
+        controls.target.set(0, size.y * 0.42, 0);
+      }
+      scene.add(currentModel);
       camera.updateProjectionMatrix();
-      controls.target.set(0, size.y * 0.42, 0);
       controls.minDistance = maxDimension * 0.55;
       controls.maxDistance = maxDimension * 1.8;
       controls.update();
