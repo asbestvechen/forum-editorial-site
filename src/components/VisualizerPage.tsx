@@ -69,8 +69,8 @@ export function VisualizerPage() {
                  <span><SunMedium size={14} strokeWidth={1.5} /> Интенсивность <output>{Math.round(lighting.intensity * 100)}%</output></span>
                  <input
                    type="range"
-                   min="0.45"
-                   max="1.55"
+                   min="0.15"
+                   max="2.4"
                    step="0.05"
                    value={lighting.intensity}
                    onChange={(event) => setLighting((current) => ({ ...current, intensity: Number(event.target.value) }))}

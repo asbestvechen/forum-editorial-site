@@ -3177,6 +3177,18 @@ a.footer-link:hover {
   cursor: pointer;
 }
 
+.visualizer-light-control input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.24rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #b5d9ff 0%, #8d8d8d 50%, #f3c27d 100%);
+}
+
+.visualizer-light-control input[type="range"]::-moz-range-track {
+  height: 0.24rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #b5d9ff 0%, #8d8d8d 50%, #f3c27d 100%);
+}
+
 .visualizer-temperature-control {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
