@@ -248,8 +248,11 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
     controls.enablePan = false;
-    controls.minDistance = 5.8;
-    controls.maxDistance = 10.5;
+    // Keep a generous close-up range: the shared physical scale makes narrow
+    // formats much smaller than the large slabs, so the surface must remain
+    // inspectable all the way down to a near-detail view.
+    controls.minDistance = 0.72;
+    controls.maxDistance = 12.5;
     controls.minPolarAngle = Math.PI * 0.22;
     controls.maxPolarAngle = Math.PI * 0.46;
     controls.update();

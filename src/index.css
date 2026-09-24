@@ -3261,25 +3261,14 @@ a.footer-link:hover {
   top: 0;
   left: 0;
   display: block;
+  border: 1px solid rgb(251 248 243 / 42%);
+  background: rgb(36 29 20 / 68%);
   color: #fbf8f3;
+  padding: 0.4rem 0.5rem;
+  box-shadow: 0 0.35rem 1rem rgb(36 29 20 / 18%);
   text-shadow: 0 1px 8px rgb(36 29 20 / 75%);
   transition: opacity 140ms ease;
   white-space: nowrap;
-}
-
-.visualizer-dimension-ruler__vertical {
-  writing-mode: vertical-rl;
-  transform-origin: center;
-}
-
-.visualizer-dimension-ruler__horizontal {
-  padding-top: 0.35rem;
-}
-
-.visualizer-dimension-ruler__thickness {
-  border: 1px solid rgb(251 248 243 / 38%);
-  background: rgb(36 29 20 / 44%);
-  padding: 0.4rem 0.5rem;
 }
 
 .visualizer-dimensions {
