@@ -14,7 +14,7 @@
 - Mobile Editorial hero uses a vertical full-screen interior photo with an animated cream headline panel entering from the bottom; supporting copy and CTAs remain in normal flow immediately below the image.
 - Wide responsive direction detail drawer: on desktop it uses a two-column image/text composition so the title and description are visible immediately; on mobile it becomes a full-height sheet with the same content, accessible keyboard/backdrop controls, and left/right swipe navigation.
 - Team route at `#/team` with a split editorial hero and a single team-level contact footer; department filters and individual employee profile cards are intentionally removed.
-- Visualizer route at `#/visualizer` with a photorealistic product render of one beveled 3D tile slab: PBR-style studio lighting, orbit camera, realistic surface textures, 20 variants grouped into four color families with manufacturer/color/search filters, official manufacturer source links where available, and local texture downloads for the FORUM Studio visual selection.
+- Visualizer route at `#/visualizer` with a photorealistic product render of one upright tile slab on a low plinth: PBR-style studio lighting, controlled orbit camera, realistic surface textures, and a catalog of confirmed Emilceramica, 41zero42, and Florim materials with manufacturer/color/search filters and official source links.
 - Events route at `#/events` with a warm editorial event announcement, a Telegram-derived post feed, a registration form collecting name and phone, and a Telegram channel CTA. Each post is rendered as an interactive gallery using every exported photo and detected video from its Telegram media group; inline videos use `controls`, `playsInline`, and `preload="none"`, while Telegram media too large for the public preview falls back to a direct Telegram video link. No post content is hand-authored in the UI. The featured event CTA opens the event-registration modal, while the home hero and footer open the contact modal with direct phone/Telegram links for Макс.
 - Shared editorial button variants keep the home hero, event registration, Telegram, and contact actions coherent across desktop and mobile: calm outline/warm-paper treatments for secondary actions, a light-on-dark treatment for forms, and a single stronger dark CTA for the featured event.
 - Interactive Yandex map embed for г. Екатеринбург, ул. Хохрякова, 18.
@@ -29,8 +29,8 @@
 - `src/lib/scroll.ts`: global Lenis lifecycle plus anchor/top scrolling helpers.
 - `src/components/DirectionDrawer.tsx`: accessible responsive detail drawer for the existing direction cards.
 - `src/components/EventsPage.tsx`: editorial Events page, static Telegram export, interactive post galleries, featured-event block, registration form, and modal trigger.
-- `src/components/Tile3DScene.tsx`: beveled single-tile renderer with PBR-style studio lighting, orbit controls, shadows, and runtime texture replacement.
-- `src/components/VisualizerPage.tsx` and `src/lib/materials.ts`: single-tile visualizer UI, 20 material variants grouped by color, manufacturer/color/search filters, source links for the official entries, and local texture downloads for the FORUM Studio entries.
+- `src/components/Tile3DScene.tsx`: upright beveled tile-on-plinth renderer with PBR-style studio lighting, orbit controls, shadows, controlled framing, and runtime texture replacement.
+- `src/components/VisualizerPage.tsx` and `src/lib/materials.ts`: tile-on-plinth visualizer UI, seven confirmed manufacturer materials grouped by color, manufacturer/color/search filters, and official source/download links.
 - `public/assets/bathroom/bathroom_extended.gltf` + `bathroom.bin`: detailed GLTF 2.0 scene and external binary buffer; the optimized `bathroom.bin` is approximately 21.5 MB (the original source buffer was approximately 56 MB), so keep the asset path intact and account for download/memory cost before production publication.
 - The GLTF metadata identifies the generator and PBRT scene but contains no embedded license, copyright, or attribution record; verify the original scene's usage rights before publishing it to GitHub Pages.
 - `src/components/RegistrationModal.tsx` and `src/lib/registration.ts`: shared event/contact modal flows, Russian phone formatting, direct contact links, and environment-aware submission (public Adaptive endpoint for GitHub Pages, local Adaptive/standalone fallback).
@@ -46,7 +46,7 @@
 - `public/images/directions/`: curated 4:5 WebP editorial interiors used inside the existing direction categories, unified around the brighter warm-white, pale oak, limestone, textile, charcoal, and muted brass palette of the original series.
 - `public/images/team/team.webp`: temporary AI-generated group hero image for the team-level page; individual portrait assets remain available for future use but are not rendered in the current team tab.
 - `public/images/brands/`: locally cached 128px brand marks sourced from public brand domains via favicon endpoints; unsupported or unnamed suppliers use a text-only wordmark fallback.
-- Visualizer material previews and source files currently point to official Emilceramica, 41zero42, and Florim catalog/CDN URLs; this keeps the first MVP host-independent while a later catalog proxy/import service can be added for the future hosting move.
+- Visualizer material previews and source files point to official Emilceramica, 41zero42, and Florim catalog/CDN URLs; unverified/generated selections are intentionally excluded until additional partner materials are sourced and approved.
 
 ## Brand Assets
 

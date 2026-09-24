@@ -38,8 +38,6 @@ export function VisualizerPage() {
     return matchesManufacturer && matchesColor && (!normalizedQuery || haystack.includes(normalizedQuery));
   }), [colorGroup, manufacturer, normalizedQuery]);
 
-  const officialMaterialsCount = tileMaterials.filter((material) => material.sourceUrl).length;
-
   const applyMaterial = () => setRenderedId(selectedMaterial.id);
 
   return (
@@ -92,11 +90,11 @@ export function VisualizerPage() {
                 </select>
               </label>
             </div>
-             <div className="visualizer-catalog__count">{filteredMaterials.length} плиток · {officialMaterialsCount} официальных + визуальная подборка ФОРУМ</div>
+             <div className="visualizer-catalog__count">{filteredMaterials.length} материалов · официальные каталоги производителей</div>
             <div className="visualizer-materials-grid">
               {filteredMaterials.map((material) => <MaterialCard key={material.id} material={material} selected={material.id === selectedId} onSelect={() => setSelectedId(material.id)} />)}
             </div>
-            {filteredMaterials.length === 0 && <p className="visualizer-empty">Ничего не найдено. Измените запрос или производителя.</p>}
+            {filteredMaterials.length === 0 && <p className="visualizer-empty">Ничего не найдено. Измените запрос, цвет или производителя.</p>}
             <div className="visualizer-selected">
               <div className="visualizer-selected__heading">
                 <span className="visualizer-toolbar-label">Выбрано</span>
