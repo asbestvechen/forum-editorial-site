@@ -477,8 +477,8 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
       <span className="visualizer-render-hint">Поверните модель мышью</span>
       {showRuler && (
         <div className="visualizer-dimension-ruler" aria-label={`Размер плитки: ширина ${dimensions.widthCm} сантиметров, длина ${dimensions.lengthCm} сантиметров, толщина ${dimensions.thicknessMm} миллиметров`}>
-          <span ref={lengthLabelRef} className="visualizer-dimension-ruler__vertical">Длина {dimensions.lengthCm} см</span>
-          <span ref={widthLabelRef} className="visualizer-dimension-ruler__horizontal">Ширина {dimensions.widthCm} см</span>
+          <span ref={lengthLabelRef} className="visualizer-dimension-ruler__vertical">{dimensions.lengthCm} см</span>
+          <span ref={widthLabelRef} className="visualizer-dimension-ruler__horizontal">{dimensions.widthCm} см</span>
           <span ref={thicknessLabelRef} className="visualizer-dimension-ruler__thickness">Толщина {dimensions.thicknessMm.toLocaleString("ru-RU")} мм</span>
         </div>
       )}
