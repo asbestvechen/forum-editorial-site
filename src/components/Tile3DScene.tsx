@@ -5,6 +5,15 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { TileMaterial } from "@/lib/materials";
 
+export type TileLighting = {
+  intensity: number;
+  temperature: number;
+};
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
 function configureTexture(texture: THREE.Texture, renderer: THREE.WebGLRenderer) {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -14,6 +23,30 @@ function configureTexture(texture: THREE.Texture, renderer: THREE.WebGLRenderer)
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
+}
+
+function temperatureColor(temperature: number, coolHex: string, warmHex: string) {
+  const neutral = new THREE.Color("#fffaf1");
+  const endpoint = new THREE.Color(temperature < 0 ? coolHex : warmHex);
+  return endpoint.lerp(neutral, 1 - Math.abs(temperature));
+}
+
+function applyStudioLighting(
+  lighting: TileLighting,
+  keyLight: THREE.DirectionalLight,
+  fillLight: THREE.DirectionalLight,
+  hemisphereLight: THREE.HemisphereLight,
+) {
+  const intensity = clamp(lighting.intensity, 0.45, 1.55);
+  const temperature = clamp(lighting.temperature, -1, 1);
+
+  keyLight.intensity = 2.8 * intensity;
+  keyLight.color.copy(temperatureColor(temperature, "#c9e2ff", "#fff0d7"));
+  fillLight.intensity = 0.78 * intensity;
+  fillLight.color.copy(temperatureColor(temperature, "#d6edff", "#ffe6c1"));
+  hemisphereLight.intensity = 0.42 * intensity;
+  hemisphereLight.color.copy(temperatureColor(temperature, "#d7eaff", "#fff3dc"));
+  hemisphereLight.groundColor.copy(temperatureColor(temperature, "#65788c", "#876b52"));
 }
 
 function frameTexture(texture: THREE.Texture, surfaceWidth: number, surfaceHeight: number) {
@@ -37,9 +70,14 @@ function frameTexture(texture: THREE.Texture, surfaceWidth: number, surfaceHeigh
   texture.needsUpdate = true;
 }
 
-export function Tile3DScene({ material }: { material: TileMaterial }) {
+export function Tile3DScene({ material, lighting }: { material: TileMaterial; lighting: TileLighting }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const lightingRef = useRef(lighting);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    lightingRef.current = lighting;
+  }, [lighting]);
 
   useEffect(() => {
     const root = mountRef.current;
@@ -55,8 +93,8 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.86;
+    renderer.toneMapping = THREE.AgXToneMapping;
+    renderer.toneMappingExposure = 1;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -97,7 +135,9 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
     const fillLight = new THREE.DirectionalLight("#dce9f1", 0.78);
     fillLight.position.set(4.5, 3.5, -4.5);
     scene.add(fillLight);
-    scene.add(new THREE.HemisphereLight("#fffaf2", "#76675a", 0.42));
+    const hemisphereLight = new THREE.HemisphereLight("#fffaf2", "#76675a", 0.42);
+    scene.add(hemisphereLight);
+    applyStudioLighting(lightingRef.current, keyLight, fillLight, hemisphereLight);
 
     const floorMaterial = new THREE.MeshStandardMaterial({ color: "#bdb2a7", roughness: 0.9 });
     const studioFloor = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), floorMaterial);
@@ -143,11 +183,13 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
     tile.add(body);
 
     const surfaceMaterial = new THREE.MeshPhysicalMaterial({
-      color: "#d7cec3",
-      roughness: material.finish.toLowerCase().includes("gloss") ? 0.21 : 0.39,
+      // Keep the catalog image as the albedo. A warm base color here makes
+      // cool stones render beige and breaks the swatch-to-render comparison.
+      color: "#ffffff",
+      roughness: material.finish.toLowerCase().includes("gloss") ? 0.18 : 0.34,
       metalness: 0.01,
-      clearcoat: material.finish.toLowerCase().includes("gloss") ? 0.32 : 0.12,
-      clearcoatRoughness: 0.2,
+      clearcoat: material.finish.toLowerCase().includes("gloss") ? 0.26 : 0.08,
+      clearcoatRoughness: 0.16,
       side: THREE.DoubleSide,
     });
     const surface = new THREE.Mesh(new THREE.PlaneGeometry(Math.max(0.8, tileWidth - 0.1), tileHeight - 0.1), surfaceMaterial);
@@ -195,7 +237,18 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
     resizeObserver.observe(root);
 
     let animationFrame = 0;
+    let appliedIntensity = Number.NaN;
+    let appliedTemperature = Number.NaN;
+    const syncLighting = () => {
+      const next = lightingRef.current;
+      if (next.intensity === appliedIntensity && next.temperature === appliedTemperature) return;
+      applyStudioLighting(next, keyLight, fillLight, hemisphereLight);
+      appliedIntensity = next.intensity;
+      appliedTemperature = next.temperature;
+    };
+
     const animate = () => {
+      syncLighting();
       controls.update();
       renderer.render(scene, camera);
       animationFrame = window.requestAnimationFrame(animate);

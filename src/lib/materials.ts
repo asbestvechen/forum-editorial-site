@@ -317,5 +317,11 @@ export const tileMaterials: TileMaterial[] = [
   },
 ];
 
-export const materialManufacturers = ["Все производители", ...Array.from(new Set(tileMaterials.map((material) => material.manufacturer)))];
-export const materialColorGroups = ["Все цвета", ...Array.from(new Set(tileMaterials.map((material) => material.colorGroup)))];
+// Several catalog records describe different finishes of the same source image.
+// The visualizer should not present identical swatches as separate materials.
+export const visualizerMaterials = tileMaterials.filter((material, index, materials) => (
+  materials.findIndex((candidate) => candidate.textureUrl === material.textureUrl) === index
+));
+
+export const materialManufacturers = ["Все производители", ...Array.from(new Set(visualizerMaterials.map((material) => material.manufacturer)))];
+export const materialColorGroups = ["Все цвета", ...Array.from(new Set(visualizerMaterials.map((material) => material.colorGroup)))];

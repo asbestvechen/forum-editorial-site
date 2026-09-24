@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { Check, Download, ExternalLink, Search, SlidersHorizontal } from "lucide-react";
+import { Check, Download, ExternalLink, Search, SlidersHorizontal, SunMedium, Thermometer } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
-import { Tile3DScene } from "@/components/Tile3DScene";
+import { Tile3DScene, type TileLighting } from "@/components/Tile3DScene";
 import { brand } from "@/lib/brand";
-import { materialColorGroups, materialManufacturers, tileMaterials, type TileMaterial } from "@/lib/materials";
+import { materialColorGroups, materialManufacturers, visualizerMaterials, type TileMaterial } from "@/lib/materials";
+
+const defaultLighting: TileLighting = { intensity: 1, temperature: 0 };
 
 function MaterialCard({ material, selected, onSelect }: { material: TileMaterial; selected: boolean; onSelect: () => void }) {
   return (
@@ -25,12 +27,13 @@ export function VisualizerPage() {
   const [query, setQuery] = useState("");
   const [manufacturer, setManufacturer] = useState("Все производители");
   const [colorGroup, setColorGroup] = useState("Все цвета");
-  const [selectedId, setSelectedId] = useState(tileMaterials[0].id);
+  const [selectedId, setSelectedId] = useState(visualizerMaterials[0].id);
+  const [lighting, setLighting] = useState<TileLighting>(defaultLighting);
 
-  const selectedMaterial = tileMaterials.find((material) => material.id === selectedId) ?? tileMaterials[0];
+  const selectedMaterial = visualizerMaterials.find((material) => material.id === selectedId) ?? visualizerMaterials[0];
   const renderedMaterial = selectedMaterial;
   const normalizedQuery = query.trim().toLocaleLowerCase("ru-RU");
-  const filteredMaterials = useMemo(() => tileMaterials.filter((material) => {
+  const filteredMaterials = useMemo(() => visualizerMaterials.filter((material) => {
     const matchesManufacturer = manufacturer === "Все производители" || material.manufacturer === manufacturer;
     const matchesColor = colorGroup === "Все цвета" || material.colorGroup === colorGroup;
     const haystack = [material.manufacturer, material.collection, material.name, material.format, material.color, ...material.tags].join(" ").toLocaleLowerCase("ru-RU");
@@ -50,11 +53,48 @@ export function VisualizerPage() {
               </div>
               <span className="visualizer-render-status"><span /> Живая примерка</span>
             </div>
-            <div className="visualizer-render">
-               <Tile3DScene material={renderedMaterial} />
-               <div className="visualizer-render-note">3D-модель плитки · {renderedMaterial.name}</div>
-            </div>
-            <div className="visualizer-render-legend">
+             <div className="visualizer-render">
+                <Tile3DScene material={renderedMaterial} lighting={lighting} />
+                <div className="visualizer-render-note">3D-модель плитки · {renderedMaterial.name}</div>
+              </div>
+             <div className="visualizer-light-controls" aria-label="Настройки света">
+               <div className="visualizer-light-controls__header">
+                 <div>
+                   <span className="visualizer-toolbar-label">Свет сцены</span>
+                   <strong>Настройка рендера</strong>
+                 </div>
+                 <button type="button" onClick={() => setLighting(defaultLighting)}>Сбросить</button>
+               </div>
+               <label className="visualizer-light-control">
+                 <span><SunMedium size={14} strokeWidth={1.5} /> Интенсивность <output>{Math.round(lighting.intensity * 100)}%</output></span>
+                 <input
+                   type="range"
+                   min="0.45"
+                   max="1.55"
+                   step="0.05"
+                   value={lighting.intensity}
+                   onChange={(event) => setLighting((current) => ({ ...current, intensity: Number(event.target.value) }))}
+                   aria-label="Интенсивность света"
+                 />
+               </label>
+               <label className="visualizer-light-control">
+                 <span><Thermometer size={14} strokeWidth={1.5} /> Температура <output>{lighting.temperature < -0.02 ? "Холоднее" : lighting.temperature > 0.02 ? "Теплее" : "Нейтрально"}</output></span>
+                 <div className="visualizer-temperature-control">
+                   <small>Холоднее</small>
+                   <input
+                     type="range"
+                     min="-1"
+                     max="1"
+                     step="0.05"
+                     value={lighting.temperature}
+                     onChange={(event) => setLighting((current) => ({ ...current, temperature: Number(event.target.value) }))}
+                     aria-label="Температура света"
+                   />
+                   <small>Теплее</small>
+                 </div>
+               </label>
+             </div>
+             <div className="visualizer-render-legend">
               <span className="visualizer-render-legend__tag">Плитка</span>
               <span>Вращайте модель мышью или пальцем</span>
             </div>
