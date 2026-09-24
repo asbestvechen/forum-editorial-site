@@ -3076,21 +3076,6 @@ a.footer-link:hover {
   cursor: grabbing;
 }
 
-.visualizer-render-hint {
-  position: absolute;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 2;
-  border: 1px solid rgb(251 248 243 / 46%);
-  background: rgb(36 29 20 / 48%);
-  padding: 0.5rem 0.65rem;
-  color: #fbf8f3;
-  font-size: 0.56rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  pointer-events: none;
-}
-
 .visualizer-render-loading {
   position: absolute;
   inset: 50% auto auto 50%;
@@ -3243,6 +3228,31 @@ a.footer-link:hover {
   text-transform: uppercase;
 }
 
+.visualizer-ruler-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 4;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid rgb(251 248 243 / 52%);
+  background: rgb(36 29 20 / 58%);
+  color: #fbf8f3;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.visualizer-ruler-toggle:hover,
+.visualizer-ruler-toggle:focus-visible,
+.visualizer-ruler-toggle.is-active {
+  border-color: #c98a12;
+  background: #c98a12;
+  color: #fbf8f3;
+  outline: none;
+}
+
 .visualizer-dimension-ruler {
   position: absolute;
   inset: 0;
@@ -3322,28 +3332,6 @@ a.footer-link:hover {
   align-items: center;
   gap: 0.45rem;
   padding-top: 0.85rem;
-}
-
-.visualizer-render-legend button {
-  border: 1px solid rgb(36 29 20 / 18%);
-  background: transparent;
-  padding: 0.55rem 0.75rem;
-  color: rgb(36 29 20 / 58%);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.visualizer-render-legend button.is-active {
-  border-color: #c98a12;
-  background: #c98a12;
-  color: #fbf8f3;
-}
-
-.visualizer-render-legend span {
-  margin-left: auto;
-  color: rgb(36 29 20 / 42%);
-  font-size: 0.65rem;
 }
 
 .visualizer-render-legend__tag {
@@ -3435,13 +3423,6 @@ a.footer-link:hover {
   color: rgb(36 29 20 / 46%);
   font-size: 0.58rem;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.visualizer-catalog__count {
-  color: rgb(36 29 20 / 45%);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 

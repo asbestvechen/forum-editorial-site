@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Download, ExternalLink, Search, SlidersHorizontal, SunMedium, Thermometer } from "lucide-react";
+import { Check, Download, ExternalLink, Ruler, Search, SlidersHorizontal, SunMedium, Thermometer } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tile3DScene, type TileLighting } from "@/components/Tile3DScene";
 import { brand } from "@/lib/brand";
@@ -55,9 +55,19 @@ export function VisualizerPage() {
               </div>
               <span className="visualizer-render-status"><span /> Живая примерка</span>
             </div>
-             <div className="visualizer-render">
-                 <Tile3DScene material={renderedMaterial} lighting={lighting} showRuler={showRuler} />
+              <div className="visualizer-render">
+                <Tile3DScene material={renderedMaterial} lighting={lighting} showRuler={showRuler} />
                 <div className="visualizer-render-note">3D-модель плитки · {renderedMaterial.name}</div>
+                <button
+                  type="button"
+                  className={`visualizer-ruler-toggle ${showRuler ? "is-active" : ""}`}
+                  onClick={() => setShowRuler((current) => !current)}
+                  aria-label={showRuler ? "Скрыть линейку" : "Показать линейку"}
+                  aria-pressed={showRuler}
+                  title={showRuler ? "Скрыть линейку" : "Показать линейку"}
+                >
+                  <Ruler size={18} strokeWidth={1.6} />
+                </button>
               </div>
              <div className="visualizer-light-controls" aria-label="Настройки света">
                <div className="visualizer-light-controls__header">
@@ -98,8 +108,6 @@ export function VisualizerPage() {
              </div>
               <div className="visualizer-render-legend">
                <span className="visualizer-render-legend__tag">Плитка</span>
-               <button type="button" className={showRuler ? "is-active" : ""} onClick={() => setShowRuler((current) => !current)} aria-pressed={showRuler}>Линейка</button>
-               <span>Вращайте модель мышью или пальцем</span>
             </div>
           </div>
 
@@ -130,8 +138,7 @@ export function VisualizerPage() {
                 </select>
               </label>
             </div>
-             <div className="visualizer-catalog__count">{filteredMaterials.length} материалов · официальные каталоги производителей</div>
-            <div className="visualizer-materials-grid">
+             <div className="visualizer-materials-grid">
               {filteredMaterials.map((material) => <MaterialCard key={material.id} material={material} selected={material.id === selectedId} onSelect={() => setSelectedId(material.id)} />)}
             </div>
             {filteredMaterials.length === 0 && <p className="visualizer-empty">Ничего не найдено. Измените запрос, цвет или производителя.</p>}
