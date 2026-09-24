@@ -6,7 +6,10 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { TileMaterial } from "@/lib/materials";
 
-const modelUrl = "./assets/bathroom/bathroom.glb";
+// Keep the full scene instead of the compact GLB export. The source GLTF
+// preserves the reference room's materials, emissive fixtures, and detailed
+// geometry; the compact export drops too much of that information.
+const modelUrl = "./assets/bathroom/bathroom_extended.gltf";
 
 function configureTexture(texture: THREE.Texture, repeat: [number, number], renderer: THREE.WebGLRenderer) {
   texture.colorSpace = THREE.SRGBColorSpace;
