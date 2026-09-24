@@ -210,10 +210,12 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
       : { background: "#e7e0d8", wall: "#d9d1c8", floor: "#bdb2a7", base: "#a99c90", top: "#bdb1a5" };
     scene.background = new THREE.Color(studioPalette.background);
 
-    // Normalize the long side so every selection remains inspectable while
-    // preserving the real width:length:thickness proportions. The ruler and
-    // dimension panel expose the physical values in centimeters/millimeters.
-    const displayScale = 3.55 / Math.max(dimensions.widthCm, dimensions.lengthCm);
+    // Use one shared scene scale for every material: 1 cm maps to 0.011 world
+    // units. This keeps the physical difference between a 120 cm and a 278 cm
+    // slab visible instead of normalizing every selection to the same length.
+    // The camera target follows the model, while the controls still allow the
+    // user to zoom into narrow formats such as 5 × 80 cm.
+    const displayScale = 0.011;
     const tileWidth = dimensions.widthCm * displayScale;
     const tileHeight = dimensions.lengthCm * displayScale;
     const tileDepth = (dimensions.thicknessMm / 10) * displayScale;
@@ -223,7 +225,7 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
     const cornerRadius = Math.min(tileWidth, tileHeight, tileDepth) * 0.34;
 
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-    camera.position.set(5.05, tileCenterY + 1.77, 7.65);
+    camera.position.set(5.05, tileCenterY + 2.35, 7.65);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -353,7 +355,7 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
     addRulerSegment(new THREE.Vector3(verticalX, -tileHeight / 2, rulerFrontZ), new THREE.Vector3(verticalX, tileHeight / 2, rulerFrontZ));
     addRulerSegment(new THREE.Vector3(verticalX - 0.06, -tileHeight / 2, rulerFrontZ), new THREE.Vector3(verticalX + 0.06, -tileHeight / 2, rulerFrontZ));
     addRulerSegment(new THREE.Vector3(verticalX - 0.06, tileHeight / 2, rulerFrontZ), new THREE.Vector3(verticalX + 0.06, tileHeight / 2, rulerFrontZ));
-    const horizontalY = -tileHeight / 2 - rulerGap;
+    const horizontalY = tileHeight / 2 + rulerGap;
     addRulerSegment(new THREE.Vector3(-tileWidth / 2, horizontalY, rulerFrontZ), new THREE.Vector3(tileWidth / 2, horizontalY, rulerFrontZ));
     addRulerSegment(new THREE.Vector3(-tileWidth / 2, horizontalY - 0.06, rulerFrontZ), new THREE.Vector3(-tileWidth / 2, horizontalY + 0.06, rulerFrontZ));
     addRulerSegment(new THREE.Vector3(tileWidth / 2, horizontalY - 0.06, rulerFrontZ), new THREE.Vector3(tileWidth / 2, horizontalY + 0.06, rulerFrontZ));
@@ -422,18 +424,19 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
 
     const updateRulerLabels = () => {
       if (!showRuler || !renderer.domElement.clientWidth || !renderer.domElement.clientHeight) return;
-      const projectLabel = (localPoint: THREE.Vector3, label: HTMLSpanElement | null) => {
+      const projectLabel = (localPoint: THREE.Vector3, label: HTMLSpanElement | null, anchor: "left" | "above" | "right") => {
         if (!label) return;
         const projected = tile.localToWorld(localPoint.clone()).project(camera);
         const visible = projected.z > -1 && projected.z < 1;
         const x = (projected.x * 0.5 + 0.5) * renderer.domElement.clientWidth;
         const y = (-projected.y * 0.5 + 0.5) * renderer.domElement.clientHeight;
-        label.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+        const anchorTransform = anchor === "left" ? "translate(-100%, -50%)" : anchor === "above" ? "translate(-50%, -100%)" : "translate(0, -50%)";
+        label.style.transform = `translate(${x}px, ${y}px) ${anchorTransform}`;
         label.style.opacity = visible ? "1" : "0";
       };
-      projectLabel(new THREE.Vector3(verticalX, 0, rulerFrontZ), lengthLabelRef.current);
-      projectLabel(new THREE.Vector3(0, horizontalY, rulerFrontZ), widthLabelRef.current);
-      projectLabel(new THREE.Vector3(thicknessX, 0, 0), thicknessLabelRef.current);
+      projectLabel(new THREE.Vector3(verticalX, 0, rulerFrontZ), lengthLabelRef.current, "left");
+      projectLabel(new THREE.Vector3(0, horizontalY, rulerFrontZ), widthLabelRef.current, "above");
+      projectLabel(new THREE.Vector3(thicknessX, 0, 0), thicknessLabelRef.current, "right");
     };
 
     const animate = () => {
