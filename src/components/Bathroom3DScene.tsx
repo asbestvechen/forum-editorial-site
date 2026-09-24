@@ -16,6 +16,32 @@ function configureTexture(texture: THREE.Texture, repeat: [number, number], rend
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 }
 
+function ensurePlanarUv(mesh: THREE.Mesh, zone: "wall" | "floor") {
+  const geometry = mesh.geometry;
+  const position = geometry.getAttribute("position");
+  if (!position) return;
+
+  geometry.computeBoundingBox();
+  const bounds = geometry.boundingBox;
+  if (!bounds) return;
+
+  const size = bounds.getSize(new THREE.Vector3());
+  const uvs = new Float32Array(position.count * 2);
+  const width = Math.max(size.x, 0.001);
+  const depth = Math.max(size.z, 0.001);
+  const height = Math.max(size.y, 0.001);
+
+  for (let index = 0; index < position.count; index += 1) {
+    const x = position.getX(index);
+    const y = position.getY(index);
+    const z = position.getZ(index);
+    uvs[index * 2] = (x - bounds.min.x) / width;
+    uvs[index * 2 + 1] = zone === "floor" ? (z - bounds.min.z) / depth : 1 - (y - bounds.min.y) / height;
+  }
+
+  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+}
+
 export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial: TileMaterial | undefined; floorMaterial: TileMaterial | undefined }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const applySurfacesRef = useRef<((wall: TileMaterial | undefined, floor: TileMaterial | undefined) => void) | null>(null);
@@ -133,8 +159,14 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
         mesh.receiveShadow = true;
         const original = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
         const materialName = `${mesh.name} ${original?.name ?? ""}`.toLowerCase();
-        if (/(greywall|wallpaper|wall|ceiling)/.test(materialName)) surfaceMeshes.wall.push(mesh);
-        if (/(floor|rug)/.test(materialName)) surfaceMeshes.floor.push(mesh);
+        if (/(greywall|wallpaper|wall|ceiling)/.test(materialName)) {
+          surfaceMeshes.wall.push(mesh);
+          ensurePlanarUv(mesh, "wall");
+        }
+        if (/(floor|rug)/.test(materialName)) {
+          surfaceMeshes.floor.push(mesh);
+          ensurePlanarUv(mesh, "floor");
+        }
       });
 
       const bounds = new THREE.Box3().setFromObject(currentModel);
