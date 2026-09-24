@@ -26,10 +26,9 @@ export function VisualizerPage() {
   const [manufacturer, setManufacturer] = useState("Все производители");
   const [colorGroup, setColorGroup] = useState("Все цвета");
   const [selectedId, setSelectedId] = useState(tileMaterials[0].id);
-  const [renderedId, setRenderedId] = useState(tileMaterials[0].id);
 
   const selectedMaterial = tileMaterials.find((material) => material.id === selectedId) ?? tileMaterials[0];
-  const renderedMaterial = tileMaterials.find((material) => material.id === renderedId) ?? tileMaterials[0];
+  const renderedMaterial = selectedMaterial;
   const normalizedQuery = query.trim().toLocaleLowerCase("ru-RU");
   const filteredMaterials = useMemo(() => tileMaterials.filter((material) => {
     const matchesManufacturer = manufacturer === "Все производители" || material.manufacturer === manufacturer;
@@ -37,8 +36,6 @@ export function VisualizerPage() {
     const haystack = [material.manufacturer, material.collection, material.name, material.format, material.color, ...material.tags].join(" ").toLocaleLowerCase("ru-RU");
     return matchesManufacturer && matchesColor && (!normalizedQuery || haystack.includes(normalizedQuery));
   }), [colorGroup, manufacturer, normalizedQuery]);
-
-  const applyMaterial = () => setRenderedId(selectedMaterial.id);
 
   return (
     <div className="visualizer-page site-editorial font-body bg-[#FBF8F3] text-[#241D14]">
@@ -49,7 +46,7 @@ export function VisualizerPage() {
             <div className="visualizer-render-toolbar">
               <div>
                 <span className="visualizer-toolbar-label">Текущий рендер</span>
-                 <strong>Плитка · предметный рендер</strong>
+                  <strong>Плитка</strong>
               </div>
               <span className="visualizer-render-status"><span /> Живая примерка</span>
             </div>
@@ -98,7 +95,7 @@ export function VisualizerPage() {
             <div className="visualizer-selected">
               <div className="visualizer-selected__heading">
                 <span className="visualizer-toolbar-label">Выбрано</span>
-                 <span>{renderedMaterial.id === selectedMaterial.id ? "На рендере" : "Готово к применению"}</span>
+                  <span>На рендере</span>
               </div>
               <div className="visualizer-selected__material">
                 <img src={selectedMaterial.textureUrl} alt="" />
@@ -109,7 +106,6 @@ export function VisualizerPage() {
                 </div>
               </div>
               <div className="visualizer-selected__actions">
-                <button type="button" className="visualizer-apply" onClick={applyMaterial}>Применить к рендеру <Check size={15} strokeWidth={1.6} /></button>
                 <a className="visualizer-download" href={selectedMaterial.downloadUrl} target="_blank" rel="noreferrer" download><Download size={15} strokeWidth={1.5} /> Скачать исходник</a>
               </div>
                {selectedMaterial.sourceUrl ? <a className="visualizer-source" href={selectedMaterial.sourceUrl} target="_blank" rel="noreferrer">{selectedMaterial.sourceLabel} <ExternalLink size={13} strokeWidth={1.5} /></a> : <span className="visualizer-source visualizer-source--static">{selectedMaterial.sourceLabel}</span>}

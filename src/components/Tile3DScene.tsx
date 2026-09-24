@@ -16,6 +16,27 @@ function configureTexture(texture: THREE.Texture, renderer: THREE.WebGLRenderer)
   texture.needsUpdate = true;
 }
 
+function frameTexture(texture: THREE.Texture, surfaceWidth: number, surfaceHeight: number) {
+  const image = texture.image as { width?: number; height?: number } | undefined;
+  if (!image?.width || !image.height) return;
+
+  const imageAspect = image.width / image.height;
+  const surfaceAspect = surfaceWidth / surfaceHeight;
+  texture.repeat.set(1, 1);
+  texture.offset.set(0, 0);
+
+  if (imageAspect > surfaceAspect) {
+    const visibleWidth = surfaceAspect / imageAspect;
+    texture.repeat.x = visibleWidth;
+    texture.offset.x = (1 - visibleWidth) / 2;
+  } else {
+    const visibleHeight = imageAspect / surfaceAspect;
+    texture.repeat.y = visibleHeight;
+    texture.offset.y = (1 - visibleHeight) / 2;
+  }
+  texture.needsUpdate = true;
+}
+
 export function Tile3DScene({ material }: { material: TileMaterial }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
@@ -58,6 +79,9 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
     controls.minPolarAngle = Math.PI * 0.22;
     controls.maxPolarAngle = Math.PI * 0.46;
     controls.update();
+
+    const blockPageWheel = (event: WheelEvent) => event.preventDefault();
+    root.addEventListener("wheel", blockPageWheel, { passive: false });
 
     const keyLight = new THREE.DirectionalLight("#fff8ed", 2.8);
     keyLight.position.set(-3.8, 7.5, 5.2);
@@ -152,6 +176,7 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
       }
       loadedTexture = texture;
       configureTexture(texture, renderer);
+      frameTexture(texture, tileWidth - 0.1, tileHeight - 0.1);
       surfaceMaterial.map = texture;
       surfaceMaterial.needsUpdate = true;
       setLoading(false);
@@ -181,6 +206,7 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
       cancelled = true;
       window.cancelAnimationFrame(animationFrame);
       resizeObserver.disconnect();
+      root.removeEventListener("wheel", blockPageWheel);
       controls.dispose();
       scene.traverse((object) => {
         const mesh = object as THREE.Mesh;
@@ -196,7 +222,7 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
 
   return (
     <div className="visualizer-render-scene-shell">
-      <div ref={mountRef} className="visualizer-render-scene" aria-label={`3D-модель плитки ${material.name}`} />
+      <div ref={mountRef} className="visualizer-render-scene" data-lenis-prevent="true" aria-label={`3D-модель плитки ${material.name}`} />
       {loading && <div className="visualizer-render-loading">Подготовка материала…</div>}
       <span className="visualizer-render-hint">Поверните модель мышью</span>
     </div>
