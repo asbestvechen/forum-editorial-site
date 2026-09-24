@@ -1,11 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { TileMaterial } from "@/lib/materials";
 
-const modelUrl = "./assets/bathroom/bathroom_extended.gltf";
+const modelUrl = "./assets/bathroom/bathroom.glb";
 
 function configureTexture(texture: THREE.Texture, repeat: [number, number], renderer: THREE.WebGLRenderer) {
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -17,26 +18,32 @@ function configureTexture(texture: THREE.Texture, repeat: [number, number], rend
 
 export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial: TileMaterial | undefined; floorMaterial: TileMaterial | undefined }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const applySurfacesRef = useRef<((wall: TileMaterial | undefined, floor: TileMaterial | undefined) => void) | null>(null);
+  const currentMaterialsRef = useRef({ wall: wallMaterial, floor: floorMaterial });
+  currentMaterialsRef.current = { wall: wallMaterial, floor: floorMaterial };
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const root = mountRef.current;
     if (!root) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#d0c1ae");
+    scene.background = new THREE.Color("#c9b9a6");
     const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 0.9;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.35));
     root.appendChild(renderer.domElement);
 
     const pmrem = new THREE.PMREMGenerator(renderer);
     const environment = new RoomEnvironment();
     scene.environment = pmrem.fromScene(environment).texture;
+    scene.environmentIntensity = 0.52;
     environment.dispose();
     pmrem.dispose();
 
@@ -47,38 +54,73 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
     controls.minPolarAngle = Math.PI * 0.23;
     controls.maxPolarAngle = Math.PI * 0.56;
 
-    const keyLight = new THREE.DirectionalLight("#fff4dc", 2.8);
+    const keyLight = new THREE.DirectionalLight("#fff4dc", 1.35);
     keyLight.position.set(-4, 8, 5);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(1024, 1024);
     scene.add(keyLight);
-    scene.add(new THREE.HemisphereLight("#fff9ec", "#645343", 1.5));
+    scene.add(new THREE.HemisphereLight("#fff9ec", "#645343", 0.62));
 
     const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
     const textureLoader = new THREE.TextureLoader();
     textureLoader.setCrossOrigin("anonymous");
     const loadedTextures: THREE.Texture[] = [];
-    const replacedMaterials: THREE.Material[] = [];
+    const replacedMaterials = new Set<THREE.Material>();
+    const textureCache = new Map<string, THREE.Texture>();
+    const surfaceMeshes: Record<"wall" | "floor", THREE.Mesh[]> = { wall: [], floor: [] };
     let cancelled = false;
     let currentModel: THREE.Object3D | null = null;
 
-    const loadSurfaceTexture = (mesh: THREE.Mesh, material: TileMaterial, repeat: [number, number]) => {
+    const applyTextureToMeshes = (meshes: THREE.Mesh[], material: TileMaterial | undefined, repeat: [number, number]) => {
+      if (!material) return;
+      const applyTexture = (texture: THREE.Texture) => {
+        meshes.forEach((mesh) => {
+          const original = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+          const previous = mesh.userData.forumReplacement as THREE.MeshStandardMaterial | undefined;
+          const replacement = previous ?? new THREE.MeshStandardMaterial({
+            color: "#ffffff",
+            roughness: 0.42,
+            metalness: 0.02,
+            side: original.side,
+          });
+          replacement.map = texture;
+          replacement.color.set("#ffffff");
+          replacement.roughness = 0.42;
+          replacement.metalness = 0.02;
+          replacement.alphaMap = null;
+          replacement.alphaTest = 0;
+          replacement.transparent = false;
+          replacement.needsUpdate = true;
+          mesh.userData.forumReplacement = replacement;
+          mesh.material = replacement;
+          replacedMaterials.add(replacement);
+        });
+      };
+
+      const cached = textureCache.get(material.textureUrl);
+      if (cached) {
+        configureTexture(cached, repeat, renderer);
+        applyTexture(cached);
+        return;
+      }
+
       textureLoader.load(material.textureUrl, (texture) => {
         if (cancelled) {
           texture.dispose();
           return;
         }
+        texture.flipY = false;
         configureTexture(texture, repeat, renderer);
+        textureCache.set(material.textureUrl, texture);
         loadedTextures.push(texture);
-        const original = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-        const replacement = original.clone() as THREE.MeshStandardMaterial;
-        replacement.map = texture;
-        replacement.color.set("#ffffff");
-        replacement.roughness = 0.58;
-        replacement.needsUpdate = true;
-        replacedMaterials.push(replacement);
-        mesh.material = replacement;
+        applyTexture(texture);
       });
+    };
+
+    applySurfacesRef.current = (wall, floor) => {
+      applyTextureToMeshes(surfaceMeshes.wall, wall, [2.2, 2.2]);
+      applyTextureToMeshes(surfaceMeshes.floor, floor, [4.5, 4.5]);
     };
 
     loader.load(modelUrl, (gltf) => {
@@ -91,8 +133,8 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
         mesh.receiveShadow = true;
         const original = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
         const materialName = `${mesh.name} ${original?.name ?? ""}`.toLowerCase();
-        if (wallMaterial && /(greywall|wallpaper|wall)/.test(materialName)) loadSurfaceTexture(mesh, wallMaterial, [2.2, 2.2]);
-        if (floorMaterial && /floor/.test(materialName)) loadSurfaceTexture(mesh, floorMaterial, [4.5, 4.5]);
+        if (/(greywall|wallpaper|wall|ceiling)/.test(materialName)) surfaceMeshes.wall.push(mesh);
+        if (/(floor|rug)/.test(materialName)) surfaceMeshes.floor.push(mesh);
       });
 
       const bounds = new THREE.Box3().setFromObject(currentModel);
@@ -121,7 +163,11 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
       controls.minDistance = maxDimension * 0.55;
       controls.maxDistance = maxDimension * 1.8;
       controls.update();
+      setLoading(false);
+      applySurfacesRef.current?.(currentMaterialsRef.current.wall, currentMaterialsRef.current.floor);
     }, undefined, (error) => {
+      setLoading(false);
+      setLoadError(true);
       console.error("Bathroom GLTF failed to load", error);
     });
 
@@ -156,10 +202,22 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
       }
       replacedMaterials.forEach((material) => material.dispose());
       loadedTextures.forEach((texture) => texture.dispose());
+      textureCache.clear();
       renderer.dispose();
       root.removeChild(renderer.domElement);
+      applySurfacesRef.current = null;
     };
-  }, [floorMaterial, wallMaterial]);
+  }, []);
 
-  return <div ref={mountRef} className="visualizer-render-scene" aria-label="Фотореалистичный 3D-рэндер ванной комнаты" />;
+  useEffect(() => {
+    applySurfacesRef.current?.(currentMaterialsRef.current.wall, currentMaterialsRef.current.floor);
+  }, [floorMaterial?.textureUrl, wallMaterial?.textureUrl]);
+
+  return (
+    <div className="visualizer-render-scene-shell" aria-label="Фотореалистичный 3D-рэндер ванной комнаты">
+      <div ref={mountRef} className="visualizer-render-scene" />
+      {loading && <div className="visualizer-render-loading">Загрузка 3D-сцены…</div>}
+      {loadError && <div className="visualizer-render-loading">Не удалось загрузить 3D-сцену</div>}
+    </div>
+  );
 }
