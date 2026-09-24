@@ -4,6 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { Reflector } from "three/examples/jsm/objects/Reflector.js";
 import type { TileMaterial } from "@/lib/materials";
 
 // Keep the full scene instead of the compact GLB export. The source GLTF
@@ -21,6 +22,7 @@ function configureTexture(texture: THREE.Texture, repeat: [number, number], rend
 
 function ensurePlanarUv(mesh: THREE.Mesh, zone: "wall" | "floor") {
   const geometry = mesh.geometry;
+  if (geometry.getAttribute("uv")) return;
   const position = geometry.getAttribute("position");
   if (!position) return;
 
@@ -96,8 +98,10 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
     textureLoader.setCrossOrigin("anonymous");
     const loadedTextures: THREE.Texture[] = [];
     const replacedMaterials = new Set<THREE.Material>();
+    const reflectors: Reflector[] = [];
     const textureCache = new Map<string, THREE.Texture>();
     const surfaceMeshes: Record<"wall" | "floor", THREE.Mesh[]> = { wall: [], floor: [] };
+    const mirrorMeshes: THREE.Mesh[] = [];
     let cancelled = false;
     let currentModel: THREE.Object3D | null = null;
 
@@ -162,6 +166,7 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
         mesh.receiveShadow = true;
         const original = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
         const materialName = `${mesh.name} ${original?.name ?? ""}`.toLowerCase();
+        if (materialName.includes("mirror")) mirrorMeshes.push(mesh);
         if (/(greywall|wallpaper|wall|ceiling)/.test(materialName)) {
           surfaceMeshes.wall.push(mesh);
           ensurePlanarUv(mesh, "wall");
@@ -170,6 +175,25 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
           surfaceMeshes.floor.push(mesh);
           ensurePlanarUv(mesh, "floor");
         }
+      });
+
+      mirrorMeshes.forEach((mesh) => {
+        const parent = mesh.parent;
+        if (!parent) return;
+        const reflector = new Reflector(mesh.geometry, {
+          color: "#b8b6b1",
+          clipBias: 0.003,
+          textureWidth: 768,
+          textureHeight: 768,
+        });
+        reflector.name = mesh.name;
+        reflector.position.copy(mesh.position);
+        reflector.quaternion.copy(mesh.quaternion);
+        reflector.scale.copy(mesh.scale);
+        reflector.userData.forumMirror = true;
+        parent.remove(mesh);
+        parent.add(reflector);
+        reflectors.push(reflector);
       });
 
       const bounds = new THREE.Box3().setFromObject(currentModel);
@@ -236,6 +260,7 @@ export function Bathroom3DScene({ wallMaterial, floorMaterial }: { wallMaterial:
         scene.remove(currentModel);
       }
       replacedMaterials.forEach((material) => material.dispose());
+      reflectors.forEach((reflector) => reflector.dispose());
       loadedTextures.forEach((texture) => texture.dispose());
       textureCache.clear();
       renderer.dispose();
