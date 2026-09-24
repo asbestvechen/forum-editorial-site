@@ -16,13 +16,6 @@ function configureTexture(texture: THREE.Texture, renderer: THREE.WebGLRenderer)
   texture.needsUpdate = true;
 }
 
-function getTileAspect(format: string) {
-  const dimensions = format.match(/\d+(?:[.,]\d+)?/g)?.map(Number) ?? [];
-  if (dimensions.length < 2) return 0.72;
-  const [first, second] = dimensions;
-  return Math.min(first, second) / Math.max(first, second);
-}
-
 export function Tile3DScene({ material }: { material: TileMaterial }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +27,7 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
     setLoading(true);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#efebe5");
+    scene.background = new THREE.Color("#e7e0d8");
 
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
     camera.position.set(5.05, 3.55, 7.65);
@@ -42,7 +35,7 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.92;
+    renderer.toneMappingExposure = 0.86;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -82,43 +75,44 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
     scene.add(fillLight);
     scene.add(new THREE.HemisphereLight("#fffaf2", "#76675a", 0.42));
 
-    const floorMaterial = new THREE.MeshStandardMaterial({ color: "#c8bdb1", roughness: 0.9 });
+    const floorMaterial = new THREE.MeshStandardMaterial({ color: "#bdb2a7", roughness: 0.9 });
     const studioFloor = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), floorMaterial);
     studioFloor.rotation.x = -Math.PI / 2;
     studioFloor.position.y = -0.02;
     studioFloor.receiveShadow = true;
     scene.add(studioFloor);
 
-    const wallMaterial = new THREE.MeshStandardMaterial({ color: "#efebe5", roughness: 0.94 });
+    const wallMaterial = new THREE.MeshStandardMaterial({ color: "#d9d1c8", roughness: 0.94 });
     const studioWall = new THREE.Mesh(new THREE.PlaneGeometry(16, 10), wallMaterial);
     studioWall.position.set(0, 4.5, -4.6);
     studioWall.receiveShadow = true;
     scene.add(studioWall);
 
-    const baseMaterial = new THREE.MeshStandardMaterial({ color: "#b5a99d", roughness: 0.7 });
+    const baseMaterial = new THREE.MeshStandardMaterial({ color: "#a99c90", roughness: 0.7 });
     const base = new THREE.Mesh(new RoundedBoxGeometry(4.25, 0.4, 2.25, 8, 0.08), baseMaterial);
     base.position.y = 0.2;
     base.castShadow = true;
     base.receiveShadow = true;
     scene.add(base);
 
-    const topMaterial = new THREE.MeshStandardMaterial({ color: "#cbc1b6", roughness: 0.6 });
+    const topMaterial = new THREE.MeshStandardMaterial({ color: "#bdb1a5", roughness: 0.6 });
     const top = new THREE.Mesh(new RoundedBoxGeometry(3.85, 0.16, 1.88, 8, 0.04), topMaterial);
     top.position.y = 0.48;
     top.castShadow = true;
     top.receiveShadow = true;
     scene.add(top);
 
-    const aspect = getTileAspect(material.format);
-    const tileHeight = aspect < 0.95 ? 3.62 : 3.25;
-    const tileWidth = tileHeight * aspect;
+    // Keep the product geometry and framing invariant across selections.
+    // Catalog format is metadata; it must not reshape the preview object.
+    const tileWidth = 2.72;
+    const tileHeight = 3.55;
     const tileDepth = 0.16;
     const tile = new THREE.Group();
     tile.position.set(0, 0.57 + tileHeight / 2, -0.03);
     tile.rotation.x = -0.045;
     tile.rotation.y = 0.02;
 
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: "#8f8377", roughness: 0.55, metalness: 0.01 });
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: "#81756a", roughness: 0.55, metalness: 0.01 });
     const body = new THREE.Mesh(new RoundedBoxGeometry(tileWidth, tileHeight, tileDepth, 10, 0.055), bodyMaterial);
     body.castShadow = true;
     body.receiveShadow = true;
@@ -198,7 +192,7 @@ export function Tile3DScene({ material }: { material: TileMaterial }) {
       renderer.dispose();
       root.removeChild(renderer.domElement);
     };
-  }, [material.textureUrl, material.finish, material.format]);
+  }, [material.textureUrl, material.finish]);
 
   return (
     <div className="visualizer-render-scene-shell">
