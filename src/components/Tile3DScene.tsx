@@ -186,6 +186,9 @@ function frameTexture(texture: THREE.Texture, surfaceWidth: number, surfaceHeigh
 
 export function Tile3DScene({ material, lighting, showRuler = true }: { material: TileMaterial; lighting: TileLighting; showRuler?: boolean }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const lengthLabelRef = useRef<HTMLSpanElement>(null);
+  const widthLabelRef = useRef<HTMLSpanElement>(null);
+  const thicknessLabelRef = useRef<HTMLSpanElement>(null);
   const lightingRef = useRef(lighting);
   const [loading, setLoading] = useState(true);
   const dimensions = getTileDimensions(material);
@@ -201,7 +204,11 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
     setLoading(true);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#e7e0d8");
+    const useDarkStudio = material.colorGroup === "Светлые" || material.color === "Белый";
+    const studioPalette = useDarkStudio
+      ? { background: "#292c2f", wall: "#3b3f43", floor: "#25282b", base: "#44494d", top: "#565b5f" }
+      : { background: "#e7e0d8", wall: "#d9d1c8", floor: "#bdb2a7", base: "#a99c90", top: "#bdb1a5" };
+    scene.background = new THREE.Color(studioPalette.background);
 
     // Normalize the long side so every selection remains inspectable while
     // preserving the real width:length:thickness proportions. The ruler and
@@ -270,27 +277,27 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
     scene.add(hemisphereLight);
     applyStudioLighting(lightingRef.current, scene, renderer, keyLight, reliefLight, fillLight, hemisphereLight);
 
-    const floorMaterial = new THREE.MeshStandardMaterial({ color: "#bdb2a7", roughness: 0.9 });
+    const floorMaterial = new THREE.MeshStandardMaterial({ color: studioPalette.floor, roughness: 0.9 });
     const studioFloor = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), floorMaterial);
     studioFloor.rotation.x = -Math.PI / 2;
     studioFloor.position.y = -0.02;
     studioFloor.receiveShadow = true;
     scene.add(studioFloor);
 
-    const wallMaterial = new THREE.MeshStandardMaterial({ color: "#d9d1c8", roughness: 0.94 });
+    const wallMaterial = new THREE.MeshStandardMaterial({ color: studioPalette.wall, roughness: 0.94 });
     const studioWall = new THREE.Mesh(new THREE.PlaneGeometry(16, 10), wallMaterial);
     studioWall.position.set(0, 4.5, -4.6);
     studioWall.receiveShadow = true;
     scene.add(studioWall);
 
-    const baseMaterial = new THREE.MeshStandardMaterial({ color: "#a99c90", roughness: 0.7 });
+    const baseMaterial = new THREE.MeshStandardMaterial({ color: studioPalette.base, roughness: 0.7 });
     const base = new THREE.Mesh(new RoundedBoxGeometry(4.25, 0.4, 2.25, 8, 0.08), baseMaterial);
     base.position.y = 0.2;
     base.castShadow = true;
     base.receiveShadow = true;
     scene.add(base);
 
-    const topMaterial = new THREE.MeshStandardMaterial({ color: "#bdb1a5", roughness: 0.6 });
+    const topMaterial = new THREE.MeshStandardMaterial({ color: studioPalette.top, roughness: 0.6 });
     const top = new THREE.Mesh(new RoundedBoxGeometry(3.85, 0.16, 1.88, 8, 0.04), topMaterial);
     top.position.y = 0.48;
     top.castShadow = true;
@@ -332,6 +339,33 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
     );
     edge.position.z = Math.max(0.0015, tileDepth * 0.25);
     tile.add(edge);
+
+    const rulerGroup = new THREE.Group();
+    rulerGroup.visible = showRuler;
+    rulerGroup.renderOrder = 10;
+    const rulerGap = Math.max(0.08, Math.min(0.18, tileWidth * 0.22));
+    const rulerFrontZ = tileDepth / 2 + Math.max(0.018, tileDepth * 1.6);
+    const rulerPoints: number[] = [];
+    const addRulerSegment = (start: THREE.Vector3, end: THREE.Vector3) => {
+      rulerPoints.push(start.x, start.y, start.z, end.x, end.y, end.z);
+    };
+    const verticalX = -tileWidth / 2 - rulerGap;
+    addRulerSegment(new THREE.Vector3(verticalX, -tileHeight / 2, rulerFrontZ), new THREE.Vector3(verticalX, tileHeight / 2, rulerFrontZ));
+    addRulerSegment(new THREE.Vector3(verticalX - 0.06, -tileHeight / 2, rulerFrontZ), new THREE.Vector3(verticalX + 0.06, -tileHeight / 2, rulerFrontZ));
+    addRulerSegment(new THREE.Vector3(verticalX - 0.06, tileHeight / 2, rulerFrontZ), new THREE.Vector3(verticalX + 0.06, tileHeight / 2, rulerFrontZ));
+    const horizontalY = -tileHeight / 2 - rulerGap;
+    addRulerSegment(new THREE.Vector3(-tileWidth / 2, horizontalY, rulerFrontZ), new THREE.Vector3(tileWidth / 2, horizontalY, rulerFrontZ));
+    addRulerSegment(new THREE.Vector3(-tileWidth / 2, horizontalY - 0.06, rulerFrontZ), new THREE.Vector3(-tileWidth / 2, horizontalY + 0.06, rulerFrontZ));
+    addRulerSegment(new THREE.Vector3(tileWidth / 2, horizontalY - 0.06, rulerFrontZ), new THREE.Vector3(tileWidth / 2, horizontalY + 0.06, rulerFrontZ));
+    const thicknessX = tileWidth / 2 + rulerGap;
+    addRulerSegment(new THREE.Vector3(thicknessX, 0, -tileDepth / 2), new THREE.Vector3(thicknessX, 0, tileDepth / 2));
+    const rulerGeometry = new THREE.BufferGeometry();
+    rulerGeometry.setAttribute("position", new THREE.Float32BufferAttribute(rulerPoints, 3));
+    const rulerMaterial = new THREE.LineBasicMaterial({ color: "#d59700", depthTest: false, transparent: true, opacity: 0.9 });
+    const rulerLines = new THREE.LineSegments(rulerGeometry, rulerMaterial);
+    rulerLines.renderOrder = 10;
+    rulerGroup.add(rulerLines);
+    tile.add(rulerGroup);
     scene.add(tile);
 
     const textureLoader = new THREE.TextureLoader();
@@ -354,7 +388,8 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
         surfaceMaterial.bumpMap = maps.bumpMap;
         surfaceMaterial.bumpScale = material.finish.toLowerCase().includes("gloss") ? 0.018 : 0.036;
         surfaceMaterial.displacementMap = maps.bumpMap;
-        surfaceMaterial.displacementScale = material.finish.toLowerCase().includes("gloss") ? 0.006 : 0.012;
+        const requestedDisplacement = material.finish.toLowerCase().includes("gloss") ? 0.006 : 0.012;
+        surfaceMaterial.displacementScale = Math.min(requestedDisplacement, tileDepth * 0.18);
         surfaceMaterial.displacementBias = -surfaceMaterial.displacementScale / 2;
         surfaceMaterial.roughnessMap = maps.roughnessMap;
       }
@@ -385,9 +420,26 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
       appliedTemperature = next.temperature;
     };
 
+    const updateRulerLabels = () => {
+      if (!showRuler || !renderer.domElement.clientWidth || !renderer.domElement.clientHeight) return;
+      const projectLabel = (localPoint: THREE.Vector3, label: HTMLSpanElement | null) => {
+        if (!label) return;
+        const projected = tile.localToWorld(localPoint.clone()).project(camera);
+        const visible = projected.z > -1 && projected.z < 1;
+        const x = (projected.x * 0.5 + 0.5) * renderer.domElement.clientWidth;
+        const y = (-projected.y * 0.5 + 0.5) * renderer.domElement.clientHeight;
+        label.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+        label.style.opacity = visible ? "1" : "0";
+      };
+      projectLabel(new THREE.Vector3(verticalX, 0, rulerFrontZ), lengthLabelRef.current);
+      projectLabel(new THREE.Vector3(0, horizontalY, rulerFrontZ), widthLabelRef.current);
+      projectLabel(new THREE.Vector3(thicknessX, 0, 0), thicknessLabelRef.current);
+    };
+
     const animate = () => {
       syncLighting();
       controls.update();
+      updateRulerLabels();
       renderer.render(scene, camera);
       animationFrame = window.requestAnimationFrame(animate);
     };
@@ -410,7 +462,7 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
       renderer.dispose();
       root.removeChild(renderer.domElement);
     };
-  }, [dimensions.lengthCm, dimensions.thicknessMm, dimensions.widthCm, material.finish, material.id, material.textureUrl]);
+  }, [dimensions.lengthCm, dimensions.thicknessMm, dimensions.widthCm, material.color, material.colorGroup, material.finish, material.id, material.textureUrl, showRuler]);
 
   return (
     <div className="visualizer-render-scene-shell">
@@ -419,9 +471,9 @@ export function Tile3DScene({ material, lighting, showRuler = true }: { material
       <span className="visualizer-render-hint">Поверните модель мышью</span>
       {showRuler && (
         <div className="visualizer-dimension-ruler" aria-label={`Размер плитки: ширина ${dimensions.widthCm} сантиметров, длина ${dimensions.lengthCm} сантиметров, толщина ${dimensions.thicknessMm} миллиметров`}>
-          <div className="visualizer-dimension-ruler__vertical"><span>Длина</span><strong>{dimensions.lengthCm} см</strong></div>
-          <div className="visualizer-dimension-ruler__horizontal"><span>Ширина</span><strong>{dimensions.widthCm} см</strong></div>
-          <div className="visualizer-dimension-ruler__thickness">Толщина {dimensions.thicknessMm.toLocaleString("ru-RU")} мм</div>
+          <span ref={lengthLabelRef} className="visualizer-dimension-ruler__vertical">Длина {dimensions.lengthCm} см</span>
+          <span ref={widthLabelRef} className="visualizer-dimension-ruler__horizontal">Ширина {dimensions.widthCm} см</span>
+          <span ref={thicknessLabelRef} className="visualizer-dimension-ruler__thickness">Толщина {dimensions.thicknessMm.toLocaleString("ru-RU")} мм</span>
         </div>
       )}
     </div>
