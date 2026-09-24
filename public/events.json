@@ -11,6 +11,46 @@
   },
   "posts": [
     {
+      "id": "telegram-612",
+      "telegramMessageId": 612,
+      "channelUsername": "salon4room",
+      "publishedAt": "2026-09-24T07:47:32.000Z",
+      "category": "materials",
+      "title": "Продолжаем знакомство с новинками.",
+      "text": "Продолжаем знакомство с новинками.\n\nСледующая коллекция — NORDEA от Emilceramica.\n\nПриятного просмотра! 🍿",
+      "excerpt": "Следующая коллекция — NORDEA от Emilceramica. Приятного просмотра!",
+      "imageUrl": "https://cdn4.telesco.pe/file/qXu6OiGe-s4MYTmI--5vm5nBrZl34nHObXE9QOkYrr5xZZk8Ltdim7f7U0KWB50PmiO2moWKn6H4gsA-mp6y21gHbL0Ks97OzT8F8gbMoZChJzPBJRad28-jPLGlEroXk1jmtCtVrlZ_Z923u5a4P4up2d7zUfyTvJve-HFeQBEoD-mgqY9PA1FTDLBHVt6NxPHc2xEToyPrTo8j8Oxng97OpwkU5JwJE3eSxIcjfDXKSUrUildOqPuUZoaJxsx1cldCzGXSaYHWobZKDk2CLi3rIoPQ-ndkbXz5YDRsdKWFC2x-QL6pYG3jZ1Dx6iwq-rv1g8U1XcbPKhjCBfoIxQ",
+      "imageUrls": [],
+      "media": [
+        {
+          "type": "video",
+          "url": null,
+          "posterUrl": "https://cdn4.telesco.pe/file/qXu6OiGe-s4MYTmI--5vm5nBrZl34nHObXE9QOkYrr5xZZk8Ltdim7f7U0KWB50PmiO2moWKn6H4gsA-mp6y21gHbL0Ks97OzT8F8gbMoZChJzPBJRad28-jPLGlEroXk1jmtCtVrlZ_Z923u5a4P4up2d7zUfyTvJve-HFeQBEoD-mgqY9PA1FTDLBHVt6NxPHc2xEToyPrTo8j8Oxng97OpwkU5JwJE3eSxIcjfDXKSUrUildOqPuUZoaJxsx1cldCzGXSaYHWobZKDk2CLi3rIoPQ-ndkbXz5YDRsdKWFC2x-QL6pYG3jZ1Dx6iwq-rv1g8U1XcbPKhjCBfoIxQ"
+        }
+      ],
+      "telegramUrl": "https://t.me/salon4room/612"
+    },
+    {
+      "id": "telegram-611",
+      "telegramMessageId": 611,
+      "channelUsername": "salon4room",
+      "publishedAt": "2026-09-24T07:45:15.000Z",
+      "category": "materials",
+      "title": "Ну что, давайте теперь посмотрим новинки!",
+      "text": "Ну что, давайте теперь посмотрим новинки!\n\nИдеальным переходом к ним будет Essenza Frammenti : с одной стороны, это полноценная самостоятельная коллекция, а с другой — продолжение Pietra Essenza .\n\nПриятного просмотра! 🍿 \n\n🍀 Ждем в гости за вдохновением! \n📍 Хохрякова, 18",
+      "excerpt": "Идеальным переходом к ним будет Essenza Frammenti : с одной стороны, это полноценная самостоятельная коллекция, а с другой — продолжение Pietra Essenza . Приятного просмотра! Ждем в гости…",
+      "imageUrl": "https://cdn4.telesco.pe/file/QXA7mXQ0q5g1iOxDcr8W_BTYPzxYctsd5rUbif_mJmjdvY-GPH8oITpS-KQNFcS4N9GEd00ankpunniU33HmFSrFUtxcIZTHdD3k_oWWJNsbPMqD-fXkF1LgeSdgjlZMelMiopuCcruSMV8vr4-nTuWBkHxe97E-QeAkI-4GmheFY-T5fT2AaOhSjvX0HOW58X2Nobgr0fUfs6z-Rw_8MVcErqAha6iRXlXNyzYqHo-uebdcr3LllHK210teGV0eqnMyiEMq2BP3IS-CMxJh18uDrk_ZoLuPmg08iASttmnJwyrB5UgDa9sLKoDiJ-A8RSo6D758dZbPkTtOKC4TrA",
+      "imageUrls": [],
+      "media": [
+        {
+          "type": "video",
+          "url": null,
+          "posterUrl": "https://cdn4.telesco.pe/file/QXA7mXQ0q5g1iOxDcr8W_BTYPzxYctsd5rUbif_mJmjdvY-GPH8oITpS-KQNFcS4N9GEd00ankpunniU33HmFSrFUtxcIZTHdD3k_oWWJNsbPMqD-fXkF1LgeSdgjlZMelMiopuCcruSMV8vr4-nTuWBkHxe97E-QeAkI-4GmheFY-T5fT2AaOhSjvX0HOW58X2Nobgr0fUfs6z-Rw_8MVcErqAha6iRXlXNyzYqHo-uebdcr3LllHK210teGV0eqnMyiEMq2BP3IS-CMxJh18uDrk_ZoLuPmg08iASttmnJwyrB5UgDa9sLKoDiJ-A8RSo6D758dZbPkTtOKC4TrA"
+        }
+      ],
+      "telegramUrl": "https://t.me/salon4room/611"
+    },
+    {
       "id": "telegram-610",
       "telegramMessageId": 610,
       "channelUsername": "salon4room",
@@ -19,13 +59,13 @@
       "title": "CERSAIE: Эволюция мрамора и оникса от EMIL GROUP",
       "text": "CERSAIE: Эволюция мрамора и оникса от EMIL GROUP \nПервый день выставки в самом разгаре, и начать хочется с обновлений уже существующих и хорошо зарекомендовавших себя коллекций. \n\nПервые в списке:\n\n1. TDM \n\n2. TDM ONYX \n\n🔥 Если вы ищете для своих проектов материалы с вау-эффектом, обратите внимание на главные релизы выставки Cersaie от итальянского гиганта Emil Group. Фабрика масштабно обновила свои ключевые линейки TDM и TDM Onyx, добавив в палитру сложные, глубокие текстуры.\n\nЧто в фокусе внимания?\n\n• TDM Rosso Levanto. Базовая коллекция Tele di Marmo пополнилась итальянской классикой - породой Rosso Levanto . Интенсивный красный фон с выразительной графикой вен дополнен ультрамягкой, бархатистой поверхностью Brushed , усиливающей естественность камня.\n\n• TDM Onyx: Stormy Day & Stormy Night. Два полярных прочтения одного оникса. Вариант Stormy Day подчеркивает светлые, пронизанные светом слои камня, а Stormy Night раскрывает его темный, глубокий и текстурный характер.\n\n🤌🏻 Все детали, эстетику текстур и интерьерный потенциал новинок раскрывает представитель фабрики Олег Борисенко в видеоролике. Обязательно посмотрите, чтобы оценить масштаб и тактильность материала.",
       "excerpt": "Первый день выставки в самом разгаре, и начать хочется с обновлений уже существующих и хорошо зарекомендовавших себя коллекций. Первые в списке: 1. TDM 2. TDM ONYX Если вы ищете для своих…",
-      "imageUrl": "https://cdn4.telesco.pe/file/qszy-mPxIH5S-_izYLrWUSxQP5KJoUCTBdg2xVnUFuV7zK2g1FHTF5Y8Rox9KzJaMuB73WD6xbjJNSQf-lXBKyRUDh88tmCddd7Ihwm5ywM72WrASvmFTO3d0EIDubXmreFKPLxj-Bkc6QRkILtFZKFbpOj21zZxLo2xCE-_9CpZ-maonWrmOn2l6GtPua-4NvKO-GzAB1ku_VUH2LIg8xgR-cW26EPVR3Lo31TYPIjVKyKwDNMOmkw2xRmV_OgmVflZu9vx_UcO_rBKGpmVi6sC5eqJ5taI8L-MvEJHfQIQTQx7b_DWCmWlY7o4PC7EKLEYZcZ9--zHsxK0BFjc3w",
+      "imageUrl": "https://cdn4.telesco.pe/file/faXk7Z4f2jLEg7bkVuJ-rQXjlr8nQY-0y4zXn3y5kuYGUJvnaVwwBq2h5s_1VbHJDgTGCm9qhci3T4z0aF9Np_tq3nDZ3zc_ME89Wo-_PwWH-EqdyFBO2KhA-AXsDpvQn359aM-9MUqFwxgPZZcrwo3AVbSmv0TZYTryFeYlEFU2ZEFSAJ8Cz5Dx29NPgX_zU3yMPo1fD1OfIaKUu51lxfzJi57MHfwWlArB3i6fGvfRy4m0-sxItxBmC1Sq3LFTlx7rBqkfKYrpOO9-lLRnriRDq3-G2_QZJHdH0sQg-wVWJ_oiMeAe5p3XxDEysAdqyfgP2eLFoIE2Fd57-7LBGQ",
       "imageUrls": [],
       "media": [
         {
           "type": "video",
           "url": null,
-          "posterUrl": "https://cdn4.telesco.pe/file/qszy-mPxIH5S-_izYLrWUSxQP5KJoUCTBdg2xVnUFuV7zK2g1FHTF5Y8Rox9KzJaMuB73WD6xbjJNSQf-lXBKyRUDh88tmCddd7Ihwm5ywM72WrASvmFTO3d0EIDubXmreFKPLxj-Bkc6QRkILtFZKFbpOj21zZxLo2xCE-_9CpZ-maonWrmOn2l6GtPua-4NvKO-GzAB1ku_VUH2LIg8xgR-cW26EPVR3Lo31TYPIjVKyKwDNMOmkw2xRmV_OgmVflZu9vx_UcO_rBKGpmVi6sC5eqJ5taI8L-MvEJHfQIQTQx7b_DWCmWlY7o4PC7EKLEYZcZ9--zHsxK0BFjc3w"
+          "posterUrl": "https://cdn4.telesco.pe/file/faXk7Z4f2jLEg7bkVuJ-rQXjlr8nQY-0y4zXn3y5kuYGUJvnaVwwBq2h5s_1VbHJDgTGCm9qhci3T4z0aF9Np_tq3nDZ3zc_ME89Wo-_PwWH-EqdyFBO2KhA-AXsDpvQn359aM-9MUqFwxgPZZcrwo3AVbSmv0TZYTryFeYlEFU2ZEFSAJ8Cz5Dx29NPgX_zU3yMPo1fD1OfIaKUu51lxfzJi57MHfwWlArB3i6fGvfRy4m0-sxItxBmC1Sq3LFTlx7rBqkfKYrpOO9-lLRnriRDq3-G2_QZJHdH0sQg-wVWJ_oiMeAe5p3XxDEysAdqyfgP2eLFoIE2Fd57-7LBGQ"
         }
       ],
       "telegramUrl": "https://t.me/salon4room/610"
@@ -195,5 +235,5 @@
     }
   ],
   "channelUrl": "https://t.me/salon4room",
-  "lastSyncedAt": "2026-09-24T03:05:19.080Z"
+  "lastSyncedAt": "2026-09-24T08:22:32.488Z"
 }
