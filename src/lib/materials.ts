@@ -14,6 +14,15 @@ export type TileMaterial = {
   tags: string[];
 };
 
+export type TileGeometry = "rectangular-slab" | "strip";
+
+export type TileDimensions = {
+  widthCm: number;
+  lengthCm: number;
+  thicknessMm: number;
+  geometry: TileGeometry;
+};
+
 export const tileMaterials: TileMaterial[] = [
   {
     id: "emil-tele-thassos",
@@ -316,6 +325,49 @@ export const tileMaterials: TileMaterial[] = [
     tags: ["камень", "белый", "60×120"],
   },
 ];
+
+// Physical dimensions used by the scene. Width/length come from the catalog
+// format; thickness follows the manufacturer's format family where listed,
+// with the standard ceramic thickness for records that expose only the face
+// format. The visualizer keeps these values separate from display copy so the
+// model and ruler cannot drift apart.
+export const tileDimensionsById: Record<string, TileDimensions> = {
+  "emil-tele-thassos": { widthCm: 90, lengthCm: 90, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "emil-tele-calacatta-black": { widthCm: 120, lengthCm: 278, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "emil-tele-verde-saint-denis": { widthCm: 60, lengthCm: 120, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "41zero42-solo-grey": { widthCm: 60, lengthCm: 120, thicknessMm: 9, geometry: "rectangular-slab" },
+  "florim-stone-calacatta": { widthCm: 120, lengthCm: 280, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "florim-stone-marfil": { widthCm: 120, lengthCm: 280, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "florim-sahara-noir": { widthCm: 160, lengthCm: 320, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "florim-stone-calacatta-smooth": { widthCm: 120, lengthCm: 280, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "florim-stone-marfil-smooth": { widthCm: 120, lengthCm: 280, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "florim-amani-bronze-matte": { widthCm: 60, lengthCm: 120, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "florim-amani-bronze-glossy": { widthCm: 60, lengthCm: 120, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "florim-stone-calacatta-black-glossy": { widthCm: 60, lengthCm: 120, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "florim-stone-calacatta-black-smooth": { widthCm: 60, lengthCm: 120, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "florim-sahara-noir-glossy": { widthCm: 120, lengthCm: 240, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "emil-tele-blu-ande": { widthCm: 120, lengthCm: 278, thicknessMm: 6.5, geometry: "rectangular-slab" },
+  "emil-tele-thassos-60x120": { widthCm: 60, lengthCm: 120, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "emil-tele-calacatta-black-60x120": { widthCm: 60, lengthCm: 120, thicknessMm: 8.5, geometry: "rectangular-slab" },
+  "41zero42-solo-out-grey": { widthCm: 40, lengthCm: 80, thicknessMm: 9, geometry: "rectangular-slab" },
+  "41zero42-solo-white-5x80": { widthCm: 5, lengthCm: 80, thicknessMm: 9, geometry: "strip" },
+  "41zero42-solo-white-60x120": { widthCm: 60, lengthCm: 120, thicknessMm: 9, geometry: "rectangular-slab" },
+};
+
+export function getTileDimensions(material: Pick<TileMaterial, "id" | "format">): TileDimensions {
+  const knownDimensions = tileDimensionsById[material.id];
+  if (knownDimensions) return knownDimensions;
+
+  const match = material.format.match(/([\d.]+)\s*[×x]\s*([\d.]+)/i);
+  const widthCm = Number(match?.[1] ?? 60);
+  const lengthCm = Number(match?.[2] ?? 120);
+  return {
+    widthCm,
+    lengthCm,
+    thicknessMm: 8.5,
+    geometry: widthCm <= 10 ? "strip" : "rectangular-slab",
+  };
+}
 
 // Several catalog records describe different finishes of the same source image.
 // The visualizer should not present identical swatches as separate materials.

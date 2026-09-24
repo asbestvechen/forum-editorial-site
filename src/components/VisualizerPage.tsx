@@ -3,7 +3,7 @@ import { Check, Download, ExternalLink, Search, SlidersHorizontal, SunMedium, Th
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tile3DScene, type TileLighting } from "@/components/Tile3DScene";
 import { brand } from "@/lib/brand";
-import { materialColorGroups, materialManufacturers, visualizerMaterials, type TileMaterial } from "@/lib/materials";
+import { getTileDimensions, materialColorGroups, materialManufacturers, visualizerMaterials, type TileMaterial } from "@/lib/materials";
 
 const defaultLighting: TileLighting = { intensity: 1, temperature: 0 };
 
@@ -29,8 +29,10 @@ export function VisualizerPage() {
   const [colorGroup, setColorGroup] = useState("Все цвета");
   const [selectedId, setSelectedId] = useState(visualizerMaterials[0].id);
   const [lighting, setLighting] = useState<TileLighting>(defaultLighting);
+  const [showRuler, setShowRuler] = useState(true);
 
   const selectedMaterial = visualizerMaterials.find((material) => material.id === selectedId) ?? visualizerMaterials[0];
+  const selectedDimensions = getTileDimensions(selectedMaterial);
   const renderedMaterial = selectedMaterial;
   const normalizedQuery = query.trim().toLocaleLowerCase("ru-RU");
   const filteredMaterials = useMemo(() => visualizerMaterials.filter((material) => {
@@ -54,7 +56,7 @@ export function VisualizerPage() {
               <span className="visualizer-render-status"><span /> Живая примерка</span>
             </div>
              <div className="visualizer-render">
-                <Tile3DScene material={renderedMaterial} lighting={lighting} />
+                 <Tile3DScene material={renderedMaterial} lighting={lighting} showRuler={showRuler} />
                 <div className="visualizer-render-note">3D-модель плитки · {renderedMaterial.name}</div>
               </div>
              <div className="visualizer-light-controls" aria-label="Настройки света">
@@ -94,9 +96,10 @@ export function VisualizerPage() {
                  </div>
                </label>
              </div>
-             <div className="visualizer-render-legend">
-              <span className="visualizer-render-legend__tag">Плитка</span>
-              <span>Вращайте модель мышью или пальцем</span>
+              <div className="visualizer-render-legend">
+               <span className="visualizer-render-legend__tag">Плитка</span>
+               <button type="button" className={showRuler ? "is-active" : ""} onClick={() => setShowRuler((current) => !current)} aria-pressed={showRuler}>Линейка</button>
+               <span>Вращайте модель мышью или пальцем</span>
             </div>
           </div>
 
@@ -137,15 +140,22 @@ export function VisualizerPage() {
                 <span className="visualizer-toolbar-label">Выбрано</span>
                   <span>На рендере</span>
               </div>
-              <div className="visualizer-selected__material">
+               <div className="visualizer-selected__material">
                 <img src={selectedMaterial.textureUrl} alt="" />
                 <div>
                   <strong>{selectedMaterial.name}</strong>
                   <span>{selectedMaterial.manufacturer} · {selectedMaterial.collection}</span>
                     <span>{selectedMaterial.format} · {selectedMaterial.finish}</span>
-                </div>
-              </div>
-              <div className="visualizer-selected__actions">
+                 </div>
+               </div>
+               <div className="visualizer-dimensions" aria-label="Физические размеры материала">
+                 <div><span>Ширина</span><strong>{selectedDimensions.widthCm} см</strong></div>
+                 <div><span>Длина</span><strong>{selectedDimensions.lengthCm} см</strong></div>
+                 <div><span>Высота в сцене</span><strong>{selectedDimensions.lengthCm} см</strong></div>
+                 <div><span>Толщина</span><strong>{selectedDimensions.thicknessMm.toLocaleString("ru-RU")} мм</strong></div>
+               </div>
+               <div className="visualizer-dimensions__geometry">Геометрия: <strong>{selectedDimensions.geometry === "strip" ? "узкая полоса" : "прямоугольная плита"}</strong></div>
+               <div className="visualizer-selected__actions">
                 <a className="visualizer-download" href={selectedMaterial.downloadUrl} target="_blank" rel="noreferrer" download><Download size={15} strokeWidth={1.5} /> Скачать исходник</a>
               </div>
                {selectedMaterial.sourceUrl ? <a className="visualizer-source" href={selectedMaterial.sourceUrl} target="_blank" rel="noreferrer">{selectedMaterial.sourceLabel} <ExternalLink size={13} strokeWidth={1.5} /></a> : <span className="visualizer-source visualizer-source--static">{selectedMaterial.sourceLabel}</span>}

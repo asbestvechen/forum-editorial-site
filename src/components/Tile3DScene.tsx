@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import type { TileMaterial } from "@/lib/materials";
+import { getTileDimensions, type TileMaterial } from "@/lib/materials";
 
 export type TileLighting = {
   intensity: number;
@@ -184,10 +184,11 @@ function frameTexture(texture: THREE.Texture, surfaceWidth: number, surfaceHeigh
   texture.needsUpdate = true;
 }
 
-export function Tile3DScene({ material, lighting }: { material: TileMaterial; lighting: TileLighting }) {
+export function Tile3DScene({ material, lighting, showRuler = true }: { material: TileMaterial; lighting: TileLighting; showRuler?: boolean }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const lightingRef = useRef(lighting);
   const [loading, setLoading] = useState(true);
+  const dimensions = getTileDimensions(material);
 
   useEffect(() => {
     lightingRef.current = lighting;
@@ -202,8 +203,20 @@ export function Tile3DScene({ material, lighting }: { material: TileMaterial; li
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#e7e0d8");
 
+    // Normalize the long side so every selection remains inspectable while
+    // preserving the real width:length:thickness proportions. The ruler and
+    // dimension panel expose the physical values in centimeters/millimeters.
+    const displayScale = 3.55 / Math.max(dimensions.widthCm, dimensions.lengthCm);
+    const tileWidth = dimensions.widthCm * displayScale;
+    const tileHeight = dimensions.lengthCm * displayScale;
+    const tileDepth = (dimensions.thicknessMm / 10) * displayScale;
+    const tileBaseY = 0.57;
+    const tileCenterY = tileBaseY + tileHeight / 2;
+    const surfaceInset = Math.min(0.024, Math.min(tileWidth, tileHeight) * 0.08);
+    const cornerRadius = Math.min(tileWidth, tileHeight, tileDepth) * 0.34;
+
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-    camera.position.set(5.05, 3.55, 7.65);
+    camera.position.set(5.05, tileCenterY + 1.77, 7.65);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -222,7 +235,7 @@ export function Tile3DScene({ material, lighting }: { material: TileMaterial; li
     pmrem.dispose();
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 1.78, 0);
+    controls.target.set(0, tileCenterY, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
     controls.enablePan = false;
@@ -284,18 +297,13 @@ export function Tile3DScene({ material, lighting }: { material: TileMaterial; li
     top.receiveShadow = true;
     scene.add(top);
 
-    // Keep the product geometry and framing invariant across selections.
-    // Catalog format is metadata; it must not reshape the preview object.
-    const tileWidth = 2.72;
-    const tileHeight = 3.55;
-    const tileDepth = 0.16;
     const tile = new THREE.Group();
-    tile.position.set(0, 0.57 + tileHeight / 2, -0.03);
+    tile.position.set(0, tileCenterY, -0.03);
     tile.rotation.x = -0.045;
     tile.rotation.y = 0.02;
 
     const bodyMaterial = new THREE.MeshStandardMaterial({ color: "#81756a", roughness: 0.55, metalness: 0.01 });
-    const body = new THREE.Mesh(new RoundedBoxGeometry(tileWidth, tileHeight, tileDepth, 10, 0.055), bodyMaterial);
+    const body = new THREE.Mesh(new RoundedBoxGeometry(tileWidth, tileHeight, tileDepth, 10, cornerRadius), bodyMaterial);
     body.castShadow = true;
     body.receiveShadow = true;
     tile.add(body);
@@ -311,18 +319,18 @@ export function Tile3DScene({ material, lighting }: { material: TileMaterial; li
       specularIntensity: material.finish.toLowerCase().includes("gloss") ? 0.48 : 0.3,
       side: THREE.DoubleSide,
     });
-    const surface = new THREE.Mesh(new THREE.PlaneGeometry(Math.max(0.8, tileWidth - 0.1), tileHeight - 0.1, 64, 96), surfaceMaterial);
-    surface.position.z = tileDepth / 2 + 0.006;
+    const surface = new THREE.Mesh(new THREE.PlaneGeometry(Math.max(0.012, tileWidth - surfaceInset), Math.max(0.012, tileHeight - surfaceInset), 64, 96), surfaceMaterial);
+    surface.position.z = tileDepth / 2 + Math.max(0.0015, tileDepth * 0.35);
     surface.castShadow = true;
     surface.receiveShadow = true;
     tile.add(surface);
 
     const edgeMaterial = new THREE.LineBasicMaterial({ color: "#f4eee6", transparent: true, opacity: 0.6 });
     const edge = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new RoundedBoxGeometry(tileWidth, tileHeight, tileDepth, 10, 0.055)),
+      new THREE.EdgesGeometry(new RoundedBoxGeometry(tileWidth, tileHeight, tileDepth, 10, cornerRadius)),
       edgeMaterial,
     );
-    edge.position.z = 0.003;
+    edge.position.z = Math.max(0.0015, tileDepth * 0.25);
     tile.add(edge);
     scene.add(tile);
 
@@ -402,13 +410,20 @@ export function Tile3DScene({ material, lighting }: { material: TileMaterial; li
       renderer.dispose();
       root.removeChild(renderer.domElement);
     };
-  }, [material.textureUrl, material.finish]);
+  }, [dimensions.lengthCm, dimensions.thicknessMm, dimensions.widthCm, material.finish, material.id, material.textureUrl]);
 
   return (
     <div className="visualizer-render-scene-shell">
       <div ref={mountRef} className="visualizer-render-scene" data-lenis-prevent="true" aria-label={`3D-модель плитки ${material.name}`} />
       {loading && <div className="visualizer-render-loading">Подготовка материала…</div>}
       <span className="visualizer-render-hint">Поверните модель мышью</span>
+      {showRuler && (
+        <div className="visualizer-dimension-ruler" aria-label={`Размер плитки: ширина ${dimensions.widthCm} сантиметров, длина ${dimensions.lengthCm} сантиметров, толщина ${dimensions.thicknessMm} миллиметров`}>
+          <div className="visualizer-dimension-ruler__vertical"><span>Длина</span><strong>{dimensions.lengthCm} см</strong></div>
+          <div className="visualizer-dimension-ruler__horizontal"><span>Ширина</span><strong>{dimensions.widthCm} см</strong></div>
+          <div className="visualizer-dimension-ruler__thickness">Толщина {dimensions.thicknessMm.toLocaleString("ru-RU")} мм</div>
+        </div>
+      )}
     </div>
   );
 }
