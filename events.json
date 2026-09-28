@@ -11,6 +11,67 @@
   },
   "posts": [
     {
+      "id": "telegram-635",
+      "telegramMessageId": 635,
+      "channelUsername": "salon4room",
+      "publishedAt": "2026-09-28T06:35:36.000Z",
+      "category": "materials",
+      "title": "Florim расширяет палитры коллекций Reves и Authentic Luxe: новые цвета 2026",
+      "text": "Florim расширяет палитры коллекций Reves и Authentic Luxe: новые цвета 2026 \n\nВо время международной выставки Florim представит не только новые серии, но и значительное обновление уже полюбившихся топовых коллекций. 🔥 \n\nВ выставочном зале Florim Gallery во Фьорано-Моденезе показаны новые цветовые решения для коллекции Reves: цвета Rêve Doré и Rêve Eucalypto , а также и новый оттенок Nut в серии Authentic Luxe . \n\nЭти дополнения расширяют возможности дизайнеров и архитекторов, позволяя создавать ещё более индивидуальные и выразительные интерьеры.\n\n🍀 Ждем в гости за вдохновением! \n📍 Хохрякова, 18",
+      "excerpt": "Во время международной выставки Florim представит не только новые серии, но и значительное обновление уже полюбившихся топовых коллекций. В выставочном зале Florim Gallery во Фьорано-Моде…",
+      "imageUrl": "./images/events/telegram-635-01.jpg",
+      "imageUrls": [
+        "./images/events/telegram-635-01.jpg",
+        "./images/events/telegram-635-02.jpg",
+        "./images/events/telegram-635-03.jpg",
+        "./images/events/telegram-635-04.jpg",
+        "./images/events/telegram-635-05.jpg",
+        "./images/events/telegram-635-06.jpg",
+        "./images/events/telegram-635-07.jpg",
+        "./images/events/telegram-635-08.jpg",
+        "./images/events/telegram-635-09.jpg"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-01.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-02.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-03.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-04.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-05.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-06.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-07.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-08.jpg"
+        },
+        {
+          "type": "image",
+          "url": "./images/events/telegram-635-09.jpg"
+        }
+      ],
+      "telegramUrl": "https://t.me/salon4room/635"
+    },
+    {
       "id": "telegram-625",
       "telegramMessageId": 625,
       "channelUsername": "salon4room",
@@ -71,7 +132,7 @@
         {
           "type": "video",
           "url": null,
-          "posterUrl": "https://cdn4.telesco.pe/file/EM2sLNM8OuCwYo-h4RWQVWEDulru6SvDyv7Za91WFm3ugavI64xPZCL0P5htCDYpLBfsrgkbeZy60trVTXPNHgZEW2C3yP6q1rUO5oiC-J8XtZPVaAQuwDkcTmHbzT_weUvvYOhCSYOzGllfoiqtIbxhbUithw-lQ7YbRGWl84tnK6nkUfGtXi7G1rSyg6299YZb6j9Lb_UOmEO9m7QWHT2WgfWfKqWP6mhfpAo1cg2atcCz6W-9txbFjyG3e9XQe_4wEL3bBdaRlHcWoBvI4UQ09b8mvhG4Lbj46FasZ3cMiB7bpdQ8ILMHHtp0tbo-j2GkChaQpWs4k-LKYEv0uw"
+          "posterUrl": "https://cdn4.telesco.pe/file/Voz0doCcTnKYTiwl_b8PVGc2VzJ2APbrDE1nUzu43CWNXFNdwQGVPHhmyzsGiulobOdf7f4I__rmLFIllWnDdhp9QeXyylQcFF-4IdkxKZ4tl-iBfuh7nwYadznlwaHGy6wmc2pFnReF0dliX4S8HwgQVXH6MeuGBT3y88OPcdRiVPbOBL4J86fnEip51vHzVKf1LfkGNw_Zhj8AyBB0ti9WBBU6cMOPK_HK5ERH2Nsv7xi1hLf1LSXk6gcPb5qt-dQuWzObAfIByKvc0EgZc9N-yByI6Hoeil5OP5ws2CF67Dx8ZP_u4GShdSLD6tGMoF8RJFVd1HiRwzkwtdfhMg"
         }
       ],
       "telegramUrl": "https://t.me/salon4room/625"
@@ -126,39 +187,8 @@
         }
       ],
       "telegramUrl": "https://t.me/salon4room/618"
-    },
-    {
-      "id": "telegram-615",
-      "telegramMessageId": 615,
-      "channelUsername": "salon4room",
-      "publishedAt": "2026-09-25T11:39:11.000Z",
-      "category": "event",
-      "title": "Новая встреча в салоне",
-      "text": "Вчера в 4ROOM прошла встреча с амбассадором бренда NEODOM — бренда, в ассортимент которого входят коллекции керамогранита индийских и испанских фабрик.\n\n🔥 Вместе с гостями обсудили новинки, возможности применения керамогранита в проектах и вдохновились свежими идеями для жилых и коммерческих пространств.\n\n🪷 Особой частью вечера стал флористический мастер-класс: участники создавали композиции в кензане — японской технике, где цветы фиксируются на специальной основе, сохраняя естественную пластику и выразительность каждой ветви. 🌿 \n\nБлагодарим представителя NEODOM за профессиональную презентацию, а дизайнеров и архитекторов — за атмосферу, интерес и живой диалог!\n\nКерамогранит NEODOM можно заказать в салоне 4ROOM — поможем подобрать коллекцию и подготовить комплектацию под ваш проект. ✨ \n\n📍 Хохрякова, 18 \n📲 89041791508 Виктория",
-      "excerpt": "Вчера в 4ROOM прошла встреча с амбассадором бренда NEODOM — бренда, в ассортимент которого входят коллекции керамогранита индийских и испанских фабрик. Вместе с гостями обсудили новинки,…",
-      "imageUrl": "./images/events/telegram-615-01.jpg",
-      "imageUrls": [
-        "./images/events/telegram-615-01.jpg",
-        "./images/events/telegram-615-02.jpg"
-      ],
-      "media": [
-        {
-          "type": "image",
-          "url": "./images/events/telegram-615-01.jpg"
-        },
-        {
-          "type": "image",
-          "url": "./images/events/telegram-615-02.jpg"
-        },
-        {
-          "type": "video",
-          "url": "https://cdn4.telesco.pe/file/bf1c8e464c.mp4?token=ZwvOiLlysrLS9VYY-Fqbe5ASj6EU_y1ztLY1_k67nw9xIz9klFHERRiUhyh7iTXewPJsrIyg_09xx42VqTSWx7nQv_PWohS8JkGlgpc9GabIcrDXkFjkvM2LHMV6e__5z_8DGdQ1Yttw2vGhjQpQIGTvNcWvE5Dl3Ve50NQK35PAmg2yo1jvDka7L2AzpXo8m4ydxn6UDzHVSA79icv5ZP0JDZiBd59ZU3UpuhUogQA2jVK3jU1IPRCRZr_lVgcMwrAAhzpTzbzB89jAWKEg1GoYzkLzYvVh9nIEqTr-TDFictHUelS8o_Xb-JK8SbXl9_iO0PzOlrEjxlVlgjamcw",
-          "posterUrl": "https://cdn4.telesco.pe/file/A-9H_kc4oTuPTaAN6xFaIg-HKpnIZrhJIQg-137oI00NzpwzEcE4mRLTtvSFdlG1MYgep4midh-YZ2SHJneKIKDR4AhsjLpH5Su2jDshG5y0NMJCe1yVFbgD5kodlAtd-YMiQegGunu8BbMROGZNnxpG83FtSFxsWD2zHpOnYW1xoKef35ZyElFK7M5OKRuKS5Qyb564dkE3TRkA82f7I6X-_jPS6OThm-36KP9WL_3HMQy9lwl7nAmUvRru9HwLMPSkJKUX1ztsPtaweLCLZ7kylH0TEGShG1IY2Sh2YRuK_Sx5nvQYBs8rT1eDjai7GDGoGI9ZpdUsfNiSxL0SJA"
-        }
-      ],
-      "telegramUrl": "https://t.me/salon4room/615"
     }
   ],
   "channelUrl": "https://t.me/salon4room",
-  "lastSyncedAt": "2026-09-28T01:38:11.304Z"
+  "lastSyncedAt": "2026-09-28T07:36:26.319Z"
 }
