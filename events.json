@@ -11,6 +11,47 @@
   },
   "posts": [
     {
+      "id": "telegram-702",
+      "telegramMessageId": 702,
+      "channelUsername": "salon4room",
+      "publishedAt": "2026-10-30T07:38:49.000Z",
+      "category": "inspiration",
+      "title": "Дорогие друзья!",
+      "text": "Дорогие друзья! \n\nСообщаем, что у нас изменился номер телефона отдела логистики. \n\nНовый номер: +79820350045\n\nПо нему можно уточнить статус доставки, сроки отгрузки, получить документы и решить вопросы по логистике. Прежний номер больше не используется.\n\n🍀 Сохраните новый контакт, чтобы всегда быстро связываться с нами!",
+      "excerpt": "Сообщаем, что у нас изменился номер телефона отдела логистики. Новый номер: +79820350045 По нему можно уточнить статус доставки, сроки отгрузки, получить документы и решить вопросы по лог…",
+      "imageUrl": "./images/events/telegram-702-01.jpg",
+      "imageUrls": [
+        "./images/events/telegram-702-01.jpg"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "url": "./images/events/telegram-702-01.jpg"
+        }
+      ],
+      "telegramUrl": "https://t.me/salon4room/702"
+    },
+    {
+      "id": "telegram-701",
+      "telegramMessageId": 701,
+      "channelUsername": "salon4room",
+      "publishedAt": "2026-10-30T07:28:05.000Z",
+      "category": "event",
+      "title": "Вчера в нашем интерьерном салоне прошёл вечер итальянского керамогранита 🇮🇹",
+      "text": "Вчера в нашем интерьерном салоне прошёл вечер итальянского керамогранита 🇮🇹 \n\nНашими гостями стали Кьяра и Антонио - представители фабрик 41ZERO42, VALLELUNGA, DECORATORI BASSANESI, FIORANESE и COEM.\n\nПосмотрели новинки, познакомились с коллекциями и обсудили их возможности для будущих проектов. В центре внимания - фактуры, оттенки и детали, которые задают характер интерьеру и помогают воплощать самые разные дизайнерские идеи. 🤌🏻 \n\nОсобая ценность таких встреч - возможность пообщаться с представителями фабрик напрямую, задать вопросы и узнать больше о материалах, с которыми работаем. 😍 \n\nВ видео - моменты встречи и немного итальянского вдохновения ✨",
+      "excerpt": "Нашими гостями стали Кьяра и Антонио - представители фабрик 41ZERO42, VALLELUNGA, DECORATORI BASSANESI, FIORANESE и COEM. Посмотрели новинки, познакомились с коллекциями и обсудили их воз…",
+      "imageUrl": "https://cdn4.telesco.pe/file/FzTFJPCFtEz20dFHSsp495YHaTnhtYLmwJyAkIlkkSDzFXCQrX24z7yUyqXSYgP2yE_HC-hCL3gYYLgUS2sLBOPu0c-ZHQCj_HRjdooGIB3tPDIuWFI3phPY6DzY6YY8fOQU18HwYcBYuyy8R52fLkZWwCAyk7GBh46GB1ZDPSoasunMGsUd7CXD4xlHCVHU1lWQrzMY-5oQgXP-V5zPmyteHozZPtfsoKJINdWxNn4rxt0R5P5tLlzd4w6j7n1SG5cexF1g1kCoAgtC0ussgeUMe2qY-vLoU5ESan19KjpBe7IyGDnORg32KOllZXmzvOpyCfi84_oi4HXJivcGLQ",
+      "imageUrls": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://cdn4.telesco.pe/file/ad22b1ff4f.mp4?token=cxde0y4iUAsP9QEHqKuKdNoFtBPSBvcEXEEuNiDW3ILsNP56vJdAEC9aktWevkFBd52IXK_FTVpuaU-3ptNc1O8NwmZMKZqNf_m4Ab4tMgwie6N-u0y3IDyeIr0uzQlJrvqdz0u2182Evu18ceiF1GKHvqZAijTqu2WWhKuG_Q9yW1Y8ucoP0uu9VjtTX1nSV7oCm3bsAdp52SrJsLFVN5fO1oum0r2VMBdq29mwcJVOLk5gpgnjU2I1YmZRaZX7EMjb6z7rFaDFxdsRDhm7EqPT32orgoc-bnkWFyp5WDZ0MihhkKbY-tfZ4KbKOJXxq5KGW1DmkAW9echwJc-Atg",
+          "posterUrl": "https://cdn4.telesco.pe/file/FzTFJPCFtEz20dFHSsp495YHaTnhtYLmwJyAkIlkkSDzFXCQrX24z7yUyqXSYgP2yE_HC-hCL3gYYLgUS2sLBOPu0c-ZHQCj_HRjdooGIB3tPDIuWFI3phPY6DzY6YY8fOQU18HwYcBYuyy8R52fLkZWwCAyk7GBh46GB1ZDPSoasunMGsUd7CXD4xlHCVHU1lWQrzMY-5oQgXP-V5zPmyteHozZPtfsoKJINdWxNn4rxt0R5P5tLlzd4w6j7n1SG5cexF1g1kCoAgtC0ussgeUMe2qY-vLoU5ESan19KjpBe7IyGDnORg32KOllZXmzvOpyCfi84_oi4HXJivcGLQ"
+        }
+      ],
+      "telegramUrl": "https://t.me/salon4room/701"
+    },
+    {
       "id": "telegram-692",
       "telegramMessageId": 692,
       "channelUsername": "salon4room",
@@ -40,13 +81,13 @@
       "title": "Новая встреча в салоне",
       "text": "Вчера у нас был особенный вечер - с красивыми фактурами, новыми знаниями и ручной работой. ✨ \n\nСпасибо представителю EPPE & KRAFT PARKET за вдохновляющую презентацию, а всем дизайнерам - за атмосферу, живое общение и творческий настрой. Особенно приятно было видеть, с каким интересом вы создавали свои кожаные картхолдеры 🤍 \n\nВсем спасибо за встречу. До новых вечеров в нашем салоне! ❤️",
       "excerpt": "Вчера у нас был особенный вечер - с красивыми фактурами, новыми знаниями и ручной работой. Спасибо представителю EPPE & KRAFT PARKET за вдохновляющую презентацию, а всем дизайнерам - за а…",
-      "imageUrl": "https://cdn4.telesco.pe/file/rTNuC74Wb2uqKiNOvaYomOQpEHEhDL5-BgwxsxXEAUnASrnfnRg3lHfdBXEfoFn3zkS1J2w6jafUKe5SYF9uedaPx-k0qhwayPIanSHWsTNlrMytwOgys8NRZuZgye0UnlJ0S4dC8yQa8UR6M7WIxP2DGHUAvzskiNbhGBHGsvIvUC6pz-LNlUeBbivoR4O8LIY-p_5t1_Gb3fxKmAx76h4DPTnycgzTXJnHIEYqdkzSzMOoj7XEOySq4PmGRyG0TH5b2Yc5yhFmxJVRhwoSQpFuFlvOALhKLrj7CMxj4G-B7pn3Rc0dfcD6wilfLP6dawClxKpkIRMhx90mP-d-CA",
+      "imageUrl": "https://cdn4.telesco.pe/file/C_hExnMktU-VewcHOs9nD_NHAgPP-KMHT8dRulxd8w8csu7yEPjo6pYtXjLxycJKMoYMBdMELkwB4yz5Y7gd1kQXrkHk06uhknFao5Ie_wu2t2XH7Q1lAIIxSqRz4TjFPtaL45_5wqHgbkt9JJ7cUr4Vh0J2Mvf7fH6udYihseel5NDl8FqSNskjrG3XI2JSoqbIBbcSNtFCinh9GqnkJCen6spk8ClUheRCqtE5JM4LTLTRYA2ZUMd2A2TWCfgt_eAcjWSghXjJFQp6NURrHFyHwATGw-sazKuaguEEPu4b3ohfiZ8jM8aYiHlP3q_g-cmCEBedP-tkHpUs1IlB6A",
       "imageUrls": [],
       "media": [
         {
           "type": "video",
-          "url": "https://cdn4.telesco.pe/file/fd321276b9.mp4?token=YPymEhwMIu4ISiuuFhwT2VGz4z7hhZe2rZI8iDoMJWB0S3hENH_iJ_Sk0VKEIi5NobAcZw4U6aWVIMM8A225sYuq5AnEHt9Qx19XVC1tyD7qe2Fzby73l0eqXxnVakVnZte1Iu1vGTHED157fkGK5K4p_T4bN9jYFpymzKn7RA3HwLipJX88XFZASLU42V9KP-SJxDIeBg-K2150iwuwKBPrCmr6DDhx2z6hRu4_slcbPO16szoAwluJ-Y5pokvPsS7bN104ACUB_UazJ2lUIIEslu2eilCsDqjXZB7DVz8qXvS_DLN9qIQXaWS8gWrowVwkvMSUP6h-2h2d-vNX2w",
-          "posterUrl": "https://cdn4.telesco.pe/file/rTNuC74Wb2uqKiNOvaYomOQpEHEhDL5-BgwxsxXEAUnASrnfnRg3lHfdBXEfoFn3zkS1J2w6jafUKe5SYF9uedaPx-k0qhwayPIanSHWsTNlrMytwOgys8NRZuZgye0UnlJ0S4dC8yQa8UR6M7WIxP2DGHUAvzskiNbhGBHGsvIvUC6pz-LNlUeBbivoR4O8LIY-p_5t1_Gb3fxKmAx76h4DPTnycgzTXJnHIEYqdkzSzMOoj7XEOySq4PmGRyG0TH5b2Yc5yhFmxJVRhwoSQpFuFlvOALhKLrj7CMxj4G-B7pn3Rc0dfcD6wilfLP6dawClxKpkIRMhx90mP-d-CA"
+          "url": "https://cdn4.telesco.pe/file/fd321276b9.mp4?token=PIHvaSgZ8vQKsv335Z8lIN8urWu9esc4Ut54gKkRfjbLia4G4W6Prr3jjZKpzh3LQ1FzUBnSaXPXroYtIxKc3I4wpbeOeYgpnHAMEPMBWBzw9SsqjHILoKo47Uo9gSc0_uau5dGGQsuNxzo68e5ZDnJZ2WCn4e8ZjrWq0IY2cIRrql6z0tk8km90ek5dcG6CnOtxOOVXqJAJyyM7LdYtCNE_KAjvFIKjV-6eJC2a2G427iVDw1AlI6wdrMw7xmb135jpGRA2wkH-4uMtDfqm3Qvf5BI9cO8k0koTCzz7yTyXlanlTLuEwzDTlsf_mTcRq3lCYUKh9EysaSowY0bKcA",
+          "posterUrl": "https://cdn4.telesco.pe/file/C_hExnMktU-VewcHOs9nD_NHAgPP-KMHT8dRulxd8w8csu7yEPjo6pYtXjLxycJKMoYMBdMELkwB4yz5Y7gd1kQXrkHk06uhknFao5Ie_wu2t2XH7Q1lAIIxSqRz4TjFPtaL45_5wqHgbkt9JJ7cUr4Vh0J2Mvf7fH6udYihseel5NDl8FqSNskjrG3XI2JSoqbIBbcSNtFCinh9GqnkJCen6spk8ClUheRCqtE5JM4LTLTRYA2ZUMd2A2TWCfgt_eAcjWSghXjJFQp6NURrHFyHwATGw-sazKuaguEEPu4b3ohfiZ8jM8aYiHlP3q_g-cmCEBedP-tkHpUs1IlB6A"
         }
       ],
       "telegramUrl": "https://t.me/salon4room/691"
@@ -60,13 +101,13 @@
       "title": "Красивый интерьер начинается с правильных сочетаний.",
       "text": "🤍 Красивый интерьер начинается с правильных сочетаний.\n\nСмесители, напольные покрытия, двери, керамогранит, кухни, ткани для мебели и штор - на встрече мы разбираем, как всё это будет работать вместе: по цвету, фактуре, свету и настроению проекта.\n\nНаша задача - помочь дизайнеру выбрать уверенно: с образцами в руках, понятными сроками и вариантами под бюджет.\n\n📩 Присылайте планировку или визуалы - подготовим подборку и просчёт.\n\n#дизайнинтерьера #комплектацияинтерьера #сантехника #керамогранит #кухня",
       "excerpt": "Смесители, напольные покрытия, двери, керамогранит, кухни, ткани для мебели и штор - на встрече мы разбираем, как всё это будет работать вместе: по цвету, фактуре, свету и настроению прое…",
-      "imageUrl": "https://cdn4.telesco.pe/file/p6MgyKbfVsM3f-wPcL2OXtrgoUsBgVMmlK83F7WbRFrtSL_3F0ICWtpRIo2cd0Sc8ZH9EaygZGGY9oGRVGSbcuKbb-HLFn0OF8jt2SK1nyU_-FbBP06ZMB-uBXTjT1Aj2OXFsm_ZaH3oxfjBE4u_0_aX0Kc694d5DI_dRNPuG2VQMKafMZl6HG71jeupVcMVKVVwp_tz7P7GdoCOdtnep2ASzDjocJGqoTF3YQdebvBArIjmT6N8Lm9WhS0I_9Hhx9OmM6pKXi3A5S25wmVw0CQx9ugRBeuwI-qw5kb3qq9s46pg93hiXr3bMulxR2BP8Wy66AtK3eI9wxaTx1WBag",
+      "imageUrl": "https://cdn4.telesco.pe/file/cyYkRrhS2auyjzk_niachEWumVMTFiihxj8jlHxQhAq0ZTBytN8lHwdz5uZ4PrH5hXZP8933WPa8L3meOhUvEqE28HImaDs6q1cUoCFEyh2YOoJXlgoG943HesJ6grPoMM3D6GPR_O_8fLtFcyns2PhtXAPTqnoDU3cz4Sn3bvzdQNTOr-OZ4iSzp_ZF5Alw_Mi4si2XIxhAwB2-u2XHfMa3DUw4A7B6YlnELoerfLY-nWwk5h9jQRNeDXY0LUKQSyYDBsLgRGmHotBtkfCF1DswcgZem-9R00c6AJBZhnr1dp-QZT5vouhQvck3ZzXvLXPTdH_mbuc0O2j0nLEkIw",
       "imageUrls": [],
       "media": [
         {
           "type": "video",
-          "url": "https://cdn4.telesco.pe/file/1b348eba3a.mp4?token=i80r2rMVwAu6MmSL6GqMFtb04IBOyFCLcDVk-YEN_vD2_SZdJZy-hvLGR9ZdXUKm3v8GAHFDFooadvvai65xNQIE8u5RCTqFubUgZthSpei0gCM080Dr5jRloaG7TMm9_DyUZ3eTZ---ajRMefDT9-Na02TtNvgXwzGC0yiguGyqAFl8a-0uRf1Wa1J4tva-PAD_iEH0rqP8hcEA7sAT82bCBNO8iMXImIMiClwh1635jYl7SBMPFQcgohF8H4WeQDNabIREiz311J0_mnvxmhNJGKKgOms8SIAvWQ-wCK8I6uyQb86GB41Y0xVHBhPp7d7-NAgc3P4eBlrcE8sDKw",
-          "posterUrl": "https://cdn4.telesco.pe/file/p6MgyKbfVsM3f-wPcL2OXtrgoUsBgVMmlK83F7WbRFrtSL_3F0ICWtpRIo2cd0Sc8ZH9EaygZGGY9oGRVGSbcuKbb-HLFn0OF8jt2SK1nyU_-FbBP06ZMB-uBXTjT1Aj2OXFsm_ZaH3oxfjBE4u_0_aX0Kc694d5DI_dRNPuG2VQMKafMZl6HG71jeupVcMVKVVwp_tz7P7GdoCOdtnep2ASzDjocJGqoTF3YQdebvBArIjmT6N8Lm9WhS0I_9Hhx9OmM6pKXi3A5S25wmVw0CQx9ugRBeuwI-qw5kb3qq9s46pg93hiXr3bMulxR2BP8Wy66AtK3eI9wxaTx1WBag"
+          "url": "https://cdn4.telesco.pe/file/1b348eba3a.mp4?token=dxrPFQh7fOg9ee-jeTaYem_Y30H2MEveVgDOU6BhwUkom1mI1VF4CbidEHf_4QBqvPMe2Eik1zlV4r8rkGySIeVUzIMuNgcrVS6m-QvNc0ROcvLc87DBlJ1Sdal8zgtj0x1a8uuAG46yZlbyXxAxIcMDf65-56XDUg4wmnOYeCwMayjZ-_n8Yb4NKIEtLNTP182PFWZRS2PjbIOFtZ2s1qgRt-bBRmOU5A8nKc2KzHDzzy4INXdx1Q_TEzuGmxaQcNxv3qBiZSBdO1h7w7S-47JlglHbsMb7JbhCHXPgpoBVfyww0xvoRoTw8JhwkDaLTv-sfb1t50wiG4_apICbdw",
+          "posterUrl": "https://cdn4.telesco.pe/file/cyYkRrhS2auyjzk_niachEWumVMTFiihxj8jlHxQhAq0ZTBytN8lHwdz5uZ4PrH5hXZP8933WPa8L3meOhUvEqE28HImaDs6q1cUoCFEyh2YOoJXlgoG943HesJ6grPoMM3D6GPR_O_8fLtFcyns2PhtXAPTqnoDU3cz4Sn3bvzdQNTOr-OZ4iSzp_ZF5Alw_Mi4si2XIxhAwB2-u2XHfMa3DUw4A7B6YlnELoerfLY-nWwk5h9jQRNeDXY0LUKQSyYDBsLgRGmHotBtkfCF1DswcgZem-9R00c6AJBZhnr1dp-QZT5vouhQvck3ZzXvLXPTdH_mbuc0O2j0nLEkIw"
         }
       ],
       "telegramUrl": "https://t.me/salon4room/690"
@@ -96,8 +137,8 @@
         },
         {
           "type": "video",
-          "url": "https://cdn4.telesco.pe/file/3a0872df73.mp4?token=gR1SLGUIXX1mB8wyBkrMTxXqSzv7Y0gLYwKagXHLMe6ElZeeaE4b2RLjUsPAKs8lTapuAOgMIpBf36eSUUZf--GRajaDDjS8K_10kdallh111-5KljPYUbhyIvF2wjwB96gz2xiaduA08xcAqs4vzIlzHcgT-MXZYJp7KzkUQa2fmyIUn-vO02jH3nJoKNKBTSbVy76G7d31kHUkviweX1fj6d4vNzUuhW823dVDmTOaP1W_ABeJZ2_PbL0-cTbN3JugKoM5gdOVaHRI0E4K8lXpB3WyXePP4d5BWpWzEIX89pzt-WJnyHoM5Bpz9QSzwsl1KwvFPQ3YniH3FnpDYQ",
-          "posterUrl": "https://cdn4.telesco.pe/file/QdY7aElQi0fYfzBg3duG4F_6hRiH0Gwcoavv3_-mOKxoeIgk8tyi4aIqMdFi7ygxG66Spx0BE5XZqN5SI9rO-45kjNdPl3usqngpj-p-VYcX9Y_Elb0knaJV5XSZaXcqJcW6F-EhnA455C594VraCx0GhOLaqQsjJbCT4iUUMxXyRuuGHebioOXrgcHnVPTVfdqK1oc0JVwJaQke8bUgMLTNUTt1fK-iq_b19q7m6klUcvF7nnDKtilMbWuIlePn8C66WX8wVwGELLK5Fb_GoC5eA63XcLRQsBRVB6ZVnyevCL8KXBK7wuy9EaDJ98wyUZjQX0SZW25-bC_HGJgrJA"
+          "url": "https://cdn4.telesco.pe/file/3a0872df73.mp4?token=IF3isH2AX-eOP5tbIH3LOyFEmz19E-p80jXe4HiHbLhuwtJ25sB6S9txDhYKJkTHNUNRFvaN5cRGxLjGDn8l5pqzVtgCQDj8LHDYkJn1mlAwf4ra2QGc-5z2f0EdhdUVvx_vj3sgz0gPScGCil00fIAo0AETTcyaIawOVbLUkH5kj5rlQe8V9Jx2Rx6TssnDaVjrPg0Q3jGhBi-UE6daHOgVDwW0lvb_OE0lTSpoJFV3t5Ae1tsSPi1saVwGdlJw_vGlwfTm6xEotkki3nxzGlUKoAmduItj5VK79yk6UoinexervPWqpG2G6y6kkxSlDEXoiAPL4QQzF_5l2dmI7w",
+          "posterUrl": "https://cdn4.telesco.pe/file/DpXYhw3H6GRRTD5HJvYW_fGDtaYCnkvdDr3uL05RqE9Mb-YTlZ68oTQzpuzDOrt7wHXrsBlQNbYFQV4K75jxt6ZOPgsBcYi0SN33LCIfgdqDVs3oQsDyjMIW_4_2PT-6bqmOZU0B7tJne6KbUUWInQoS_IikXo_NyINUzpyMC8lgBu2Ct9WyuII_J5O9BHeI45DNG8iQqIUjjDO3sLuqK017bVy-UfIRbujtPUQNrzfTQvhFk2KYvc2FtsLcNvE8tVYJvxI4ZyrNQbaXAXqgvLc_9lGZv75w7mmRpC-R5lgxYPa8X2i89MwiU-D7lNjJYxb20ENETxoSROfF9BNQYA"
         }
       ],
       "telegramUrl": "https://t.me/salon4room/687"
@@ -188,49 +229,8 @@
         }
       ],
       "telegramUrl": "https://t.me/salon4room/675"
-    },
-    {
-      "id": "telegram-670",
-      "telegramMessageId": 670,
-      "channelUsername": "salon4room",
-      "publishedAt": "2026-10-13T06:46:45.000Z",
-      "category": "objects",
-      "title": "3 решения, которые создают премиальный интерьер",
-      "text": "🔗 3 решения, которые создают премиальный интерьер \n\n• Идеальный конструктив: каждая деталь продумана до мелочей. Запатентованные скрытые короба и двери с полотном толщиной 6 см. Инновационные инженерные решения обеспечивают прочность и безупречную геометрию конструкций — от дверей и раздвижных перегородок до стеновых панелей и теневых плинтусов. \n\n• Фурнитура премиум-класса: скрытые петли, магнитные замки, мягкие доводчики и бесшумные раздвижные механизмы. \n\n• Единый стиль: когда оттенки, текстуры и архитектурные формы всех решений работают как единый ансамбль, интерьер обретает ту самую \"тихую роскошь\". \n\n🚪 Хотите двери Union в свой интерьер? Пишите нам - подберём модель, рассчитаем стоимость и оформим заказ под ваш проект.",
-      "excerpt": "• Идеальный конструктив: каждая деталь продумана до мелочей. Запатентованные скрытые короба и двери с полотном толщиной 6 см. Инновационные инженерные решения обеспечивают прочность и без…",
-      "imageUrl": "./images/events/telegram-670-01.jpg",
-      "imageUrls": [
-        "./images/events/telegram-670-01.jpg",
-        "./images/events/telegram-670-02.jpg",
-        "./images/events/telegram-670-03.jpg",
-        "./images/events/telegram-670-04.jpg",
-        "./images/events/telegram-670-05.jpg"
-      ],
-      "media": [
-        {
-          "type": "image",
-          "url": "./images/events/telegram-670-01.jpg"
-        },
-        {
-          "type": "image",
-          "url": "./images/events/telegram-670-02.jpg"
-        },
-        {
-          "type": "image",
-          "url": "./images/events/telegram-670-03.jpg"
-        },
-        {
-          "type": "image",
-          "url": "./images/events/telegram-670-04.jpg"
-        },
-        {
-          "type": "image",
-          "url": "./images/events/telegram-670-05.jpg"
-        }
-      ],
-      "telegramUrl": "https://t.me/salon4room/670"
     }
   ],
   "channelUrl": "https://t.me/salon4room",
-  "lastSyncedAt": "2026-10-30T06:03:47.133Z"
+  "lastSyncedAt": "2026-10-30T12:41:57.267Z"
 }
