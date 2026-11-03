@@ -2812,6 +2812,19 @@ a.footer-link:hover {
   max-height: 100%;
 }
 
+.events-post__gallery-stage--image {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: zoom-in;
+}
+
+.events-post__gallery-stage--image:focus-visible {
+  outline: 2px solid #c98a12;
+  outline-offset: 3px;
+}
+
 .events-post__gallery-stage--video video {
   display: block;
   width: 100%;
@@ -2873,6 +2886,7 @@ a.footer-link:hover {
   color: #fbf8f3;
   font-size: 0.6rem;
   letter-spacing: 0.12em;
+  pointer-events: none;
 }
 
 .events-post__gallery-stage-wrap > .events-post__gallery-position {
@@ -2921,5 +2935,187 @@ a.footer-link:hover {
 
   .events-post__thumbnails {
     grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
+  }
+}
+
+.events-lightbox {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgb(25 21 16 / 94%);
+  backdrop-filter: blur(5px);
+}
+
+.events-lightbox__dialog {
+  position: relative;
+  display: grid;
+  width: min(100%, 1400px);
+  max-height: 100%;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 0.8rem;
+  outline: none;
+}
+
+.events-lightbox__stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: 3.5rem 4.5rem 0.5rem;
+}
+
+.events-lightbox__image {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 12rem);
+  object-fit: contain;
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 28%);
+  user-select: none;
+}
+
+.events-lightbox__close,
+.events-lightbox__navigation {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 2.9rem;
+  height: 2.9rem;
+  place-items: center;
+  border: 1px solid rgb(251 248 243 / 42%);
+  background: rgb(36 29 20 / 72%);
+  color: #fbf8f3;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.events-lightbox__close:hover,
+.events-lightbox__navigation:not(:disabled):hover {
+  border-color: #c98a12;
+  background: #c98a12;
+}
+
+.events-lightbox__close:focus-visible,
+.events-lightbox__navigation:focus-visible,
+.events-lightbox__thumbnail:focus-visible {
+  outline: 2px solid #e6b94d;
+  outline-offset: 3px;
+}
+
+.events-lightbox__close {
+  top: 0.35rem;
+  right: 0.4rem;
+}
+
+.events-lightbox__navigation {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.events-lightbox__navigation:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.events-lightbox__navigation--previous {
+  left: 0.5rem;
+}
+
+.events-lightbox__navigation--next {
+  right: 0.5rem;
+}
+
+.events-lightbox__caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgb(251 248 243 / 22%);
+  padding: 0.8rem 0.15rem 0.2rem;
+  color: #fbf8f3;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.events-lightbox__caption span:last-child {
+  flex: 0 0 auto;
+  color: #e6b94d;
+}
+
+.events-lightbox__thumbnails {
+  display: flex;
+  max-width: 100%;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.3rem 0.15rem 0.55rem;
+  scrollbar-color: rgb(230 185 77 / 65%) transparent;
+  scrollbar-width: thin;
+}
+
+.events-lightbox__thumbnail {
+  flex: 0 0 4.5rem;
+  width: 4.5rem;
+  height: 3.4rem;
+  overflow: hidden;
+  border: 1px solid rgb(251 248 243 / 25%);
+  background: #241d14;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.58;
+  transition: border-color 180ms ease, opacity 180ms ease;
+}
+
+.events-lightbox__thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.events-lightbox__thumbnail:hover,
+.events-lightbox__thumbnail--active {
+  border-color: #e6b94d;
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .events-lightbox {
+    padding: max(0.65rem, env(safe-area-inset-top)) max(0.65rem, env(safe-area-inset-right)) max(0.65rem, env(safe-area-inset-bottom)) max(0.65rem, env(safe-area-inset-left));
+  }
+
+  .events-lightbox__stage {
+    padding: 3.5rem 2.9rem 0.4rem;
+  }
+
+  .events-lightbox__image {
+    max-height: calc(100vh - 11rem);
+  }
+
+  .events-lightbox__close,
+  .events-lightbox__navigation {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .events-lightbox__navigation--previous {
+    left: 0.15rem;
+  }
+
+  .events-lightbox__navigation--next {
+    right: 0.15rem;
+  }
+
+  .events-lightbox__caption {
+    font-size: 0.62rem;
+  }
+
+  .events-lightbox__thumbnail {
+    flex-basis: 3.75rem;
+    width: 3.75rem;
+    height: 2.85rem;
   }
 }

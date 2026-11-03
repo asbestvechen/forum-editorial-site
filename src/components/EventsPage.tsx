@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { ArrowUpRight, CalendarDays, Check, Clock3, Images, MapPin, Play, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
+import { ArrowUpRight, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, Images, MapPin, Play, Sparkles, X } from "lucide-react";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { env } from "@/lib/env";
@@ -53,12 +53,81 @@ function getPostMedia(post: TelegramPost): TelegramMedia[] {
 function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
   const accent = eventPostCategoryAccent[post.category];
   const media = getPostMedia(post);
+  const lightboxImages = media.flatMap((item, sourceIndex) => item.type === "image" && item.url ? [{ src: item.url, sourceIndex }] : []);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const closeLightboxRef = useRef<HTMLButtonElement>(null);
+  const lightboxRef = useRef<HTMLElement>(null);
   const activeMedia = media[activeIndex] ?? media[0] ?? null;
+  const activeImageIndex = lightboxImages.findIndex((image) => image.sourceIndex === activeIndex);
+  const lightboxImage = lightboxIndex === null ? null : lightboxImages[lightboxIndex] ?? null;
+  const lightboxOpen = lightboxIndex !== null;
+  const activeLightboxSourceIndex = lightboxIndex === null ? undefined : lightboxImages[lightboxIndex]?.sourceIndex;
 
   const moveToImage = (nextIndex: number) => {
     setActiveIndex(Math.max(0, Math.min(nextIndex, media.length - 1)));
   };
+
+  const moveLightbox = useCallback((direction: number) => {
+    setLightboxIndex((currentIndex) => {
+      if (currentIndex === null || lightboxImages.length < 2) return currentIndex;
+      return (currentIndex + direction + lightboxImages.length) % lightboxImages.length;
+    });
+  }, [lightboxImages.length]);
+
+  useEffect(() => {
+    if (activeLightboxSourceIndex !== undefined) setActiveIndex(activeLightboxSourceIndex);
+  }, [activeLightboxSourceIndex]);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeLightboxRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setLightboxIndex(null);
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        moveLightbox(-1);
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        moveLightbox(1);
+        return;
+      }
+
+      if (event.key === "Tab") {
+        const focusable = lightboxRef.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
+        if (!focusable?.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus({ preventScroll: true });
+    };
+  }, [lightboxOpen, moveLightbox]);
 
   const imageCount = media.filter((item) => item.type === "image").length;
   const videoCount = media.filter((item) => item.type === "video").length;
@@ -96,16 +165,11 @@ function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
 
     if (!activeMedia.url) return null;
     return (
-      <a
-        className="events-post__gallery-stage"
-        href={activeMedia.url}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={`Открыть фотографию ${activeIndex + 1} из ${media.length} в полном размере`}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowLeft") moveToImage(activeIndex - 1);
-          if (event.key === "ArrowRight") moveToImage(activeIndex + 1);
-        }}
+      <button
+        className="events-post__gallery-stage events-post__gallery-stage--image"
+        type="button"
+        aria-label={`Открыть фотографию ${activeImageIndex + 1} из ${lightboxImages.length} в галерее`}
+        onClick={() => setLightboxIndex(activeImageIndex)}
       >
         <img
           src={activeMedia.url}
@@ -115,7 +179,7 @@ function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
             if (event.currentTarget.naturalWidth < 640) event.currentTarget.classList.add("events-post__media-image--lowres");
           }}
         />
-      </a>
+      </button>
     );
   };
 
@@ -146,6 +210,49 @@ function PostGallery({ post, index }: { post: TelegramPost; index: number }) {
       <div className="events-post__gallery-caption">
         <span><Images size={14} strokeWidth={1.4} /> {media.length ? [imageCount ? `${imageCount} фото` : "", videoCount ? `${videoCount} видео` : ""].filter(Boolean).join(" · ") : "Без медиа"}</span>
       </div>
+      {lightboxImage && lightboxIndex !== null && (
+        <div
+          className="events-lightbox"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setLightboxIndex(null);
+          }}
+        >
+          <section ref={lightboxRef} className="events-lightbox__dialog" role="dialog" aria-modal="true" aria-label={`Фотогалерея: ${post.title}`}>
+            <button ref={closeLightboxRef} className="events-lightbox__close" type="button" aria-label="Закрыть галерею" onClick={() => setLightboxIndex(null)}>
+              <X size={21} strokeWidth={1.5} />
+            </button>
+            <div className="events-lightbox__stage">
+              <button className="events-lightbox__navigation events-lightbox__navigation--previous" type="button" aria-label="Предыдущее фото" disabled={lightboxImages.length < 2} onClick={() => moveLightbox(-1)}>
+                <ChevronLeft size={24} strokeWidth={1.5} />
+              </button>
+              <img className="events-lightbox__image" src={lightboxImage.src} alt={`${post.title} — фото ${lightboxIndex + 1}`} draggable={false} />
+              <button className="events-lightbox__navigation events-lightbox__navigation--next" type="button" aria-label="Следующее фото" disabled={lightboxImages.length < 2} onClick={() => moveLightbox(1)}>
+                <ChevronRight size={24} strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="events-lightbox__caption">
+              <span>{post.title}</span>
+              <span>{String(lightboxIndex + 1).padStart(2, "0")} / {String(lightboxImages.length).padStart(2, "0")}</span>
+            </div>
+            {lightboxImages.length > 1 && (
+              <div className="events-lightbox__thumbnails" aria-label="Фотографии публикации">
+                {lightboxImages.map((image, imageIndex) => (
+                  <button
+                    key={`${image.src}-${imageIndex}`}
+                    className={`events-lightbox__thumbnail ${imageIndex === lightboxIndex ? "events-lightbox__thumbnail--active" : ""}`}
+                    type="button"
+                    aria-label={`Показать фото ${imageIndex + 1} из ${lightboxImages.length}`}
+                    aria-pressed={imageIndex === lightboxIndex}
+                    onClick={() => setLightboxIndex(imageIndex)}
+                  >
+                    <img src={image.src} alt="" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 }
