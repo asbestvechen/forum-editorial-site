@@ -280,7 +280,12 @@ function RegistrationForm({ event }: { event: FeaturedEvent | null }) {
 export function EventsPage() {
   const [pageData, setPageData] = useState<EventsPageData>(fallbackEventsPage);
   const [registrationOpen, setRegistrationOpen] = useState(false);
-  const posts = useMemo(() => pageData.posts.slice(0, 12), [pageData.posts]);
+  const posts = useMemo(
+    () => pageData.posts
+      .filter((post) => getPostMedia(post).some((item) => item.type === "image" && Boolean(item.url)))
+      .slice(0, 12),
+    [pageData.posts],
+  );
 
   useEffect(() => {
     let active = true;

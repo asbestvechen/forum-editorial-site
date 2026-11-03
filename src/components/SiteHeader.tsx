@@ -10,8 +10,7 @@ type SiteHeaderProps = {
 const links = [
   { href: "#directions", label: "Направления" },
   { href: "#about", label: "О нас" },
-  { href: "#/team", label: "Наша команда" },
-  { href: "#/visualizer", label: "Визуализатор" },
+  { label: "Наша команда", disabled: true },
   { href: "#/events", label: "События" },
   { href: "#contacts", label: "Контакты" },
 ];
@@ -61,7 +60,11 @@ export function SiteHeader({ dark = false }: SiteHeaderProps) {
         </a>
 
         <nav className={`hidden lg:flex items-center gap-8 text-[11px] uppercase tracking-[0.18em] ${muted}`} aria-label="Основная навигация">
-          {links.map((link) => (
+          {links.map((link) => link.disabled || !link.href ? (
+            <span key={link.label} aria-disabled="true" className="nav-link cursor-default select-none">
+              {link.label}
+            </span>
+          ) : (
             <a key={link.href} href={link.href} onClick={(event) => handleAnchorClick(event, link.href)} className="nav-link transition-colors hover:text-[#C98A12]">
               {link.label}
             </a>
@@ -86,7 +89,11 @@ export function SiteHeader({ dark = false }: SiteHeaderProps) {
 
       <div className={`lg:hidden overflow-hidden transition-[max-height,opacity] duration-300 ${menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
         <nav className={`px-5 pb-5 flex flex-col gap-1 text-xs uppercase tracking-[0.18em] ${muted}`} aria-label="Мобильная навигация">
-          {links.map((link) => (
+          {links.map((link) => link.disabled || !link.href ? (
+            <span key={link.label} aria-disabled="true" className="py-3 border-t border-current/10 cursor-default select-none">
+              {link.label}
+            </span>
+          ) : (
             <a key={link.href} href={link.href} onClick={(event) => { handleAnchorClick(event, link.href); setMenuOpen(false); }} className="py-3 border-t border-current/10 hover:text-[#C98A12] transition-colors">
               {link.label}
             </a>

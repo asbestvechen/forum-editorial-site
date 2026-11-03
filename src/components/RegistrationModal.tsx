@@ -111,7 +111,7 @@ export function RegistrationModal({ open, event, onClose, mode = "event" }: Regi
               {state === "submitting" ? "Отправляем…" : isContact ? "Отправить" : "Отправить заявку"}
             </button>
             {isContact && (
-              <div className="registration-modal__direct" aria-label="Прямая связь с Максом">
+              <div className="registration-modal__direct" aria-label="Прямая связь">
                 <span className="registration-modal__direct-label">Прямая связь</span>
                 <div className="registration-modal__direct-links">
                   <a className="registration-modal__direct-link" href={brand.directContact.phoneHref}>
@@ -119,7 +119,7 @@ export function RegistrationModal({ open, event, onClose, mode = "event" }: Regi
                     <strong>{brand.directContact.phone}</strong>
                   </a>
                   <a className="registration-modal__direct-link" href={brand.directContact.telegramHref} target="_blank" rel="noreferrer">
-                    <span>Telegram · {brand.directContact.name}</span>
+                    <span>Telegram</span>
                     <strong>{brand.directContact.telegram}</strong>
                   </a>
                 </div>

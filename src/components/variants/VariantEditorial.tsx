@@ -291,6 +291,10 @@ export function VariantEditorial() {
               <a href={brand.phoneHref} className="hover:text-[#C98A12]">{brand.phone}</a>
             </div>
             <div className="flex justify-between border-b border-[#FBF8F3]/15 pb-4">
+              <span className="text-[#FBF8F3]/50 uppercase tracking-wide text-xs">Телефон логистики</span>
+              <a href={brand.logisticsPhoneHref} className="hover:text-[#C98A12]">{brand.logisticsPhone}</a>
+            </div>
+            <div className="flex justify-between border-b border-[#FBF8F3]/15 pb-4">
               <span className="text-[#FBF8F3]/50 uppercase tracking-wide text-xs">Email</span>
               <a href={`mailto:${brand.email}`} className="hover:text-[#C98A12]">{brand.email}</a>
             </div>
